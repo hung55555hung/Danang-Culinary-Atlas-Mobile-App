@@ -21,9 +21,7 @@ export default function LoginScreen() {
       {/* Nút Google */}
       <TouchableOpacity style={styles.googleButton}>
         <Image
-          source={{
-            uri: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg',
-          }}
+          source={require('../assets/icon_gg.png')}
           style={styles.googleIcon}
         />
         <Text style={styles.googleText}>Tiếp tục với Google</Text>
