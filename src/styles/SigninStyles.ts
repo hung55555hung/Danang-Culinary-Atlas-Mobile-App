@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#63C7C6', // màu nền xanh nhạt
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
   },
   logo: {
     width: 250,
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#fff',
     borderRadius: 20,
-    paddingVertical: 12,
+    paddingVertical: 15,
     paddingHorizontal: 20,
     fontSize: 16,
     marginBottom: 15,
@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 15,
     alignItems: 'center',
+    marginBlockStart: 20,
   },
   loginText: {
     color: '#fff',
