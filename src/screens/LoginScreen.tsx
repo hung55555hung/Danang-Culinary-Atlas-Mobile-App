@@ -8,7 +8,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       {/* Logo */}
-      <Image source={require('../assets/logo.png')} style={styles.logo} />
+      <Image source={require('../assets/logo2.png')} style={styles.logo} />
 
       {/* Nút Tạo tài khoản */}
       <TouchableOpacity

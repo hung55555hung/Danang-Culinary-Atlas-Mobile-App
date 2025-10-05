@@ -7,7 +7,7 @@ export default function RegisterScreen() {
     <View style={styles.container}>
       {/* Logo */}
       <Image
-        source={require('../assets/logo.png')}
+        source={require('../assets/logo2.png')}
         style={styles.logo}
         resizeMode="contain"
       />
