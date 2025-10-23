@@ -8,6 +8,8 @@ import {
   ListRenderItem,
 } from 'react-native';
 import styles from '../styles/NotificationStyles';
+import { useNavigation } from '@react-navigation/native';
+import Header from '../components/Header';
 
 interface Notification {
   id: string;
@@ -77,6 +79,7 @@ const notifications: Notification[] = [
 ];
 
 export default function NotificationScreen() {
+  const navigate = useNavigation<any>();
   const renderItem: ListRenderItem<Notification> = ({ item }) => (
     <View style={styles.item}>
       <Image
@@ -101,23 +104,16 @@ export default function NotificationScreen() {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity>
-          <Image
-            source={require('../assets/icon_back.png')}
-            style={styles.backArrow}
-          />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Thông báo</Text>
-      </View>
-
+      <Header title="Thông báo" showBack={true} />
       {/* Danh sách thông báo */}
-      <FlatList
-        data={notifications}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
+      <View style={{ marginTop: 50, flex: 1 }}>
+        <FlatList
+          data={notifications}
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      </View>
     </View>
   );
 }

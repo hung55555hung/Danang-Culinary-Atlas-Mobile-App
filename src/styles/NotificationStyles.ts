@@ -6,12 +6,7 @@ export default StyleSheet.create({
     backgroundColor: '#fff',
     padding: 12,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    marginTop: 50,
-  },
+
   backArrow: {
     fontSize: 20,
     marginRight: 8,

@@ -98,10 +98,15 @@ const RestaurantDetailScreen: React.FC = () => {
       {/* Header quán ăn */}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Text style={styles.title}>Mỳ quán bếp Trang</Text>
-        <Image
-          source={require('../assets/close.png')}
-          style={{ width: 24, height: 24, marginLeft: 'auto', marginTop: 20 }}
-        />
+        <TouchableOpacity
+          style={{ marginLeft: 'auto' }}
+          onPress={() => navigate.navigate('Map')}
+        >
+          <Image
+            style={{ width: 24, height: 24, marginLeft: 'auto', marginTop: 20 }}
+            source={require('../assets/close.png')}
+          />
+        </TouchableOpacity>
       </View>
       <View style={styles.row}>
         <Text style={styles.ratingNumber}>5.0</Text>

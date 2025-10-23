@@ -3,10 +3,29 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#63C7C6', // màu nền xanh nhạt
+    backgroundColor: '#63C7C6',
+    paddingHorizontal: 30,
+  },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 50,
+  },
+
+  body: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 30,
+  },
+
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  backArrow: {
+    fontSize: 20,
+    marginRight: 8,
   },
   logo: {
     width: 250,
