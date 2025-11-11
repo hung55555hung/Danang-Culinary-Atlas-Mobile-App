@@ -12,6 +12,8 @@ export default function LoginScreen() {
 
       {/* Nút Tạo tài khoản */}
       <TouchableOpacity
+        testID="button-register-account"
+        accessibilityLabel="button-register-account"
         style={styles.button}
         onPress={() => navigate.navigate('Register')}
       >
@@ -20,6 +22,8 @@ export default function LoginScreen() {
 
       {/* Nút Đăng nhập */}
       <TouchableOpacity
+        testID="button-sigin1"
+        accessibilityLabel="button-sigin1"
         style={styles.button}
         onPress={() => navigate.navigate('Signin')}
       >

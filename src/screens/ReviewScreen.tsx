@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,24 +9,32 @@ import {
 } from 'react-native';
 import RatingStars from '../components/RatingStars';
 import styles from '../styles/ReviewStyles';
+import { getUserFullName } from '../utils/auth';
+import { useImagePicker } from '../hooks/useImagePicker';
+import { useRoute } from '@react-navigation/core';
+import { useCreateReview } from '../hooks/useCreateReview';
 
 const ReviewScreen: React.FC = () => {
-  const [rating, setRating] = useState(0);
-  const [reviewText, setReviewText] = useState('');
+  const [fullName, setFullName] = useState('');
+  const route = useRoute<any>();
+  const { restaurantId } = route.params;
+  const {
+    handleSubmit,
+    rating,
+    setRating,
+    comment,
+    setComment,
+    images,
+    handleAddPhoto,
+  } = useCreateReview(restaurantId);
 
-  const handleSubmit = () => {
-    if (rating === 0) {
-      Alert.alert('Thông báo', 'Vui lòng chọn số sao trước khi gửi!');
-      return;
-    }
-    Alert.alert(
-      'Cảm ơn bạn!',
-      `Bạn đã đánh giá ${rating} sao với nội dung: ${reviewText}`,
-    );
-    // TODO: gọi API lưu đánh giá vào backend
-    setReviewText('');
-    setRating(0);
-  };
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userFullName = await getUserFullName();
+      setFullName(userFullName || '');
+    };
+    fetchUserData();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -40,7 +48,7 @@ const ReviewScreen: React.FC = () => {
           style={styles.avatar}
         />
         <View style={{ marginLeft: 10 }}>
-          <Text style={styles.userName}>Thái Viết Quốc Hưng</Text>
+          <Text style={styles.userName}>{fullName}</Text>
           <Text style={styles.public}>Đăng công khai</Text>
         </View>
       </View>
@@ -52,9 +60,18 @@ const ReviewScreen: React.FC = () => {
         multiline
         numberOfLines={4}
         placeholder="Nhập đánh giá..."
-        value={reviewText}
-        onChangeText={setReviewText}
+        value={comment}
+        onChangeText={setComment}
       />
+
+      {/* Nút thêm ảnh */}
+      <TouchableOpacity style={styles.uploadButton} onPress={handleAddPhoto}>
+        <Image
+          source={require('../assets/add_image.png')}
+          style={styles.uploadIcon}
+        />
+        <Text style={styles.uploadText}>Thêm ảnh và video</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Gửi đánh giá</Text>

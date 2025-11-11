@@ -11,6 +11,21 @@ import ShopDetailScreen from '../screens/ShopDetailScreen';
 import DrawerNavigator from './DrawerNavigator';
 import RegisterShopScreen from '../screens/RegisterShopScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import PickLocationScreen from '../screens/PickLocationScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import ResetPasswordScreen from '../screens/ResetPasswordScreen';
+import ImagePreviewScreen from '../screens/ImagePreviewScreen';
+import { LinkingOptions } from '@react-navigation/native';
+
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: ['atlasculinary://'],
+  config: {
+    screens: {
+      ResetPassword: 'reset-password',
+    },
+  },
+};
+
 export type RootStackParamList = {
   Login: undefined;
   Signin: undefined;
@@ -21,13 +36,17 @@ export type RootStackParamList = {
   Drawer: undefined;
   RegisterShop: undefined;
   Profile: undefined;
+  PickLocation: undefined;
+  ResetPassword: { token: string };
+  ForgotPassword: undefined;
+  ImagePreview: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Drawer" component={DrawerNavigator} />
@@ -35,10 +54,21 @@ export default function AppNavigator() {
         <Stack.Screen name="Review" component={ReviewScreen} />
         <Stack.Screen name="Notification" component={NotificationScreen} />
         <Stack.Screen name="Signin" component={SigninScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="RegisterShop" component={RegisterShopScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="PickLocation" component={PickLocationScreen} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen
+          name="ImagePreview"
+          component={ImagePreviewScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
+// ./gradlew assembleDebug
+// adb install -r android/app/build/outputs/apk/debug/app-debug.apk

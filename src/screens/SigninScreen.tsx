@@ -34,12 +34,22 @@ export default function SigninScreen() {
         password,
       });
 
-      const { token, email: userEmail, fullName, roles } = response.data.data;
+      const {
+        token,
+        email: userEmail,
+        fullName,
+        roles,
+        avatarUrl,
+      } = response.data.data;
       console.log('Đăng nhập thành công:', response.data);
 
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('userEmail', userEmail);
-      await AsyncStorage.setItem('roles', JSON.stringify(roles));
+      await AsyncStorage.setItem('fullName', fullName);
+      await AsyncStorage.setItem('avatarUrl', avatarUrl || '');
+      const role =
+        Array.isArray(roles) && roles.length > 0 ? roles[0].toLowerCase() : '';
+      await AsyncStorage.setItem('roles', role);
       navigation.navigate('Drawer');
     } catch (error: any) {
       console.error('Lỗi đăng nhập:', error);
@@ -69,6 +79,8 @@ export default function SigninScreen() {
 
           {/* Input Email */}
           <TextInput
+            testID="txt-email"
+            accessibilityLabel="txt-email"
             placeholder="Email"
             style={styles.input}
             placeholderTextColor="#666"
@@ -80,6 +92,8 @@ export default function SigninScreen() {
 
           {/* Input Password */}
           <TextInput
+            testID="txt-pw"
+            accessibilityLabel="txt-pw"
             placeholder="Mật khẩu"
             secureTextEntry
             style={styles.input}
@@ -90,13 +104,17 @@ export default function SigninScreen() {
 
           {/* Quên mật khẩu */}
           <View style={styles.forgotPasswordWrapper}>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ForgotPassword')}
+            >
               <Text style={styles.forgotPassword}>Quên mật khẩu?</Text>
             </TouchableOpacity>
           </View>
 
           {/* Button Login */}
           <TouchableOpacity
+            testID="button-sigin2"
+            accessibilityLabel="button-sigin2"
             style={styles.loginButton}
             onPress={handleLogin}
             disabled={loading}

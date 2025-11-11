@@ -1,52 +1,81 @@
 import { StyleSheet } from 'react-native';
 
-export default StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+
   markerImage: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#fff',
   },
-  menuButton: {
+
+  // Thanh tìm kiếm kiểu Google Maps
+  searchBarContainer: {
     position: 'absolute',
-    top: 60,
-    left: 20,
+    top: 45,
+    left: 15,
+    right: 15,
+    zIndex: 10,
+  },
+
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 30,
-    width: 45,
-    height: 45,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 6, // Android shadow
-    shadowColor: '#000', // iOS shadow
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  searchBar: {
-    position: 'absolute',
-    top: 60,
-    left: 80,
-    right: 20,
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 25,
-    paddingHorizontal: 15,
-    alignItems: 'center',
-    height: 45,
-    elevation: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    elevation: 5,
     shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
+
+  mapIcon: {
+    width: 25,
+    height: 25,
+    resizeMode: 'contain',
+    marginRight: 8,
+    paddingVertical: 20,
+  },
+
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    color: '#000',
+    fontSize: 15,
+    color: '#333',
+    paddingVertical: 6,
+  },
+
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginLeft: 8,
+  },
+  callout: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 8,
+    width: 250,
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  address: {
+    fontSize: 12,
+    color: '#555',
+  },
+  name: {
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });
+
+export default styles;

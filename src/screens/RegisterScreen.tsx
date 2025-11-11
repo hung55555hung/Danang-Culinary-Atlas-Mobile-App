@@ -85,6 +85,8 @@ export default function RegisterScreen({ navigation }: any) {
 
             {/* Input Email */}
             <TextInput
+              testID="input-email"
+              accessibilityLabel="input-email"
               placeholder="Email"
               value={email}
               onChangeText={setEmail}
@@ -96,6 +98,8 @@ export default function RegisterScreen({ navigation }: any) {
 
             {/* Input Password */}
             <TextInput
+              testID="input-password"
+              accessibilityLabel="input-password"
               placeholder="Mật khẩu"
               value={password}
               onChangeText={setPassword}
@@ -106,6 +110,8 @@ export default function RegisterScreen({ navigation }: any) {
 
             {/* Input Confirm Password */}
             <TextInput
+              testID="input-confirm-password"
+              accessibilityLabel="input-confirm-password"
               placeholder="Xác nhận mật khẩu"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -116,6 +122,8 @@ export default function RegisterScreen({ navigation }: any) {
 
             {/* Dropdown chọn Role */}
             <TouchableOpacity
+              testID="dropdown-role"
+              accessibilityLabel="dropdown-role"
               style={[
                 styles.input,
                 {
@@ -141,6 +149,8 @@ export default function RegisterScreen({ navigation }: any) {
 
             {/* Button Register */}
             <TouchableOpacity
+              testID="button-register"
+              accessibilityLabel="button-register"
               style={styles.loginButton}
               onPress={handleRegister}
             >
@@ -181,6 +191,8 @@ export default function RegisterScreen({ navigation }: any) {
                     keyExtractor={item => item.value}
                     renderItem={({ item }) => (
                       <TouchableOpacity
+                        testID={`role-${item.value}`}
+                        accessibilityLabel={`role-${item.value}`}
                         onPress={() => {
                           setRole(item.value);
                           setModalVisible(false);

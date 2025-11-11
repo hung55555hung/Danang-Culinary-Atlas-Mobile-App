@@ -1,185 +1,207 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   Image,
   FlatList,
-  StyleSheet,
   TouchableOpacity,
-  TextInput,
   ScrollView,
 } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import RatingStars from '../components/RatingStars';
+import ReviewItem from '../components/ReviewItem';
+import RestaurantInfo from '../components/RestaurantInfo';
+import { useRestaurantDetail } from '../hooks/useRestaurantDetail';
+import { useRestaurantReviews } from '../hooks/useRestaurantReviews';
 import styles from '../styles/ShopDetailStyles';
-import { useNavigation } from '@react-navigation/native';
+import { getRestaurantById } from '../api/apiConfig';
+import { handleImagePreview } from '../utils/imagePreview';
 
-const mockReviews = [
-  {
-    id: '1',
-    name: 'Nguyễn Văn An',
-    avatar: require('../assets/avt_default.jpg'),
-    time: '1 giờ trước',
-    rating: 5,
-    content: 'Mì Quảng ngon, nước dùng đậm đà, không gian sạch sẽ.',
-    image: require('../assets/anh.jpg'),
-  },
-  {
-    id: '2',
-    name: 'Lê Thị Mai',
-    avatar: require('../assets/avt_default.jpg'),
-    time: '3 giờ trước',
-    rating: 4,
-    content: 'Phục vụ nhanh, nhưng hơi đông khách nên đợi một chút.',
-    image: require('../assets/anh.jpg'),
-  },
-  {
-    id: '3',
-    name: 'Phạm Quốc Huy',
-    avatar: require('../assets/avt_default.jpg'),
-    time: 'Hôm qua',
-    rating: 5,
-    content: 'Rất hài lòng, chắc chắn sẽ quay lại lần sau!',
-    image: require('../assets/anh.jpg'),
-  },
-  {
-    id: '4',
-    name: 'Trần Hồng Nhung',
-    avatar: require('../assets/avt_default.jpg'),
-    time: '2 ngày trước',
-    rating: 3,
-    content: 'Món ăn ổn nhưng hơi mặn so với khẩu vị của mình.',
-    image: require('../assets/anh.jpg'),
-  },
-];
-
-const RestaurantDetailScreen: React.FC = () => {
-  const [rating, setRating] = useState(0);
-  const [reviewText, setReviewText] = useState('');
+export default function RestaurantDetailScreen() {
+  const route = useRoute<any>();
   const navigate = useNavigation<any>();
+  const { item, restaurantId, reviewId, fromNotification } = route.params || {};
+  const flatListRef = useRef<FlatList<any>>(null);
+  const currentRestaurantId = item ? item.restaurantId : restaurantId;
+  const { reviews, loading, error } = useRestaurantReviews(currentRestaurantId);
+  const [restaurantDetail, setRestaurantDetail] = useState<any>(item || null);
+  const [loadingDetail, setLoadingDetail] = useState(!item);
+  const { rating, setRating, foodImages } =
+    useRestaurantDetail(restaurantDetail);
+  console.log('Reviews:', reviews);
 
-  // Local images cho quán ăn
-  const foodImages = [
-    require('../assets/anh.jpg'),
-    require('../assets/anh.jpg'),
-    require('../assets/anh.jpg'),
-  ];
+  useEffect(() => {
+    const fetchRestaurant = async () => {
+      if (!item && currentRestaurantId) {
+        try {
+          const response = await getRestaurantById(currentRestaurantId);
+          setRestaurantDetail(response.data);
+        } catch (err) {
+          console.error('Lỗi khi tải chi tiết nhà hàng:', err);
+        } finally {
+          setLoadingDetail(false);
+        }
+      }
+    };
+    fetchRestaurant();
+  }, [currentRestaurantId]);
 
-  const renderReview = ({ item }: any) => (
-    <View>
-      <View style={{ flexDirection: 'row' }}>
-        <Image source={item.avatar} style={styles.avatar} />
-        <View style={{ flex: 1 }}>
-          <View style={styles.reviewHeader}>
-            <Text style={styles.reviewerName}>{item.name}</Text>
-            <Text style={styles.time}>{item.time}</Text>
-          </View>
-          <View style={{ flexDirection: 'row', marginVertical: 3 }}>
-            {Array.from({ length: 5 }, (_, i) => (
-              <Image
-                key={i}
-                source={
-                  i < item.rating
-                    ? require('../assets/star_filled.png')
-                    : require('../assets/star_outline.png')
-                }
-                style={styles.starSmall}
-              />
-            ))}
-          </View>
-        </View>
-      </View>
-      <Text style={styles.reviewText}>{item.content}</Text>
-      {item.image && <Image source={item.image} style={styles.reviewImage} />}
-    </View>
-  );
+  useEffect(() => {
+    if (fromNotification && reviewId && reviews.length > 0) {
+      const index = reviews.findIndex(r => r.reviewId === reviewId);
+      if (index !== -1) {
+        flatListRef.current?.scrollToIndex({ index, animated: true });
+      }
+    }
+  }, [fromNotification, reviewId, reviews]);
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header quán ăn */}
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Text style={styles.title}>Mỳ quán bếp Trang</Text>
+    <ScrollView
+      style={styles.container}
+      testID="shop-detail-scroll"
+      accessibilityLabel="shop-detail-scroll"
+    >
+      {/* Header */}
+      <View
+        testID="shop-detail-header"
+        accessibilityLabel="shop-detail-header"
+        style={{ flexDirection: 'row', alignItems: 'center' }}
+      >
+        <Text
+          testID="restaurant-detail-name"
+          accessibilityLabel="restaurant-detail-name"
+          style={styles.title}
+        >
+          {restaurantDetail?.name}
+        </Text>
         <TouchableOpacity
+          testID="close-button"
+          accessibilityLabel="close-button"
           style={{ marginLeft: 'auto' }}
-          onPress={() => navigate.navigate('Map')}
+          onPress={() => navigate.navigate('Drawer')}
         >
           <Image
+            testID="close-icon"
+            accessibilityLabel="close-icon"
             style={{ width: 24, height: 24, marginLeft: 'auto', marginTop: 20 }}
             source={require('../assets/close.png')}
           />
         </TouchableOpacity>
       </View>
-      <View style={styles.row}>
-        <Text style={styles.ratingNumber}>5.0</Text>
-        {Array.from({ length: 5 }, (_, i) => (
-          <Image
-            key={i}
-            source={require('../assets/star_filled.png')}
-            style={styles.starSmall}
-          />
-        ))}
-      </View>
-      <Text style={styles.category}>Quán ăn</Text>
 
-      {/* Ảnh quán ăn */}
+      {/* Rating */}
+      <View
+        testID="rating-section"
+        accessibilityLabel="rating-section"
+        style={styles.row}
+      >
+        <Text
+          testID="restaurant-rating"
+          accessibilityLabel="restaurant-rating"
+          style={styles.ratingNumber}
+        >
+          {restaurantDetail?.averageRating}
+        </Text>
+        {Array.from(
+          { length: Math.round(restaurantDetail?.averageRating || 0) },
+          (_, i) => (
+            <Image
+              key={i}
+              source={require('../assets/star_filled.png')}
+              style={styles.starSmall}
+            />
+          ),
+        )}
+      </View>
+      <Text
+        testID="restaurant-category"
+        accessibilityLabel="restaurant-category"
+        style={styles.category}
+      >
+        Quán ăn
+      </Text>
+
+      {/* Ảnh */}
       <FlatList
+        testID="food-images-list"
+        accessibilityLabel="food-images-list"
         data={foodImages}
         horizontal
         keyExtractor={(_, index) => index.toString()}
         showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <Image source={item} style={styles.foodImageCarousel} />
+        renderItem={({ item, index }) => (
+          <TouchableOpacity
+            testID={`food-image-${index}`}
+            accessibilityLabel={`food-image-${index}`}
+            onPress={() => handleImagePreview(navigate, item, foodImages)}
+          >
+            <Image
+              testID={`food-image-element-${index}`}
+              accessibilityLabel={`food-image-element-${index}`}
+              source={{ uri: item }}
+              style={styles.foodImageCarousel}
+            />
+          </TouchableOpacity>
         )}
         style={{ marginBottom: 10 }}
       />
 
-      {/* Thông tin quán */}
-      <View style={styles.infoRow}>
-        <Text>📍 441 Ông Ích Khiêm, Đà Nẵng</Text>
-      </View>
-      <View style={styles.infoRow}>
-        <Text>📞 0766 771 772</Text>
-      </View>
-      <View style={styles.infoRow}>
-        <Text>🕒 6:00 AM - 23:00 PM</Text>
+      {/* Info */}
+      <View
+        testID="restaurant-info-section"
+        accessibilityLabel="restaurant-info-section"
+      >
+        <RestaurantInfo address={restaurantDetail?.address} />
       </View>
 
-      {/* Form đánh giá */}
-      <Text style={styles.sectionTitle}>Xếp hạng và đánh giá</Text>
+      {/* Review */}
+      <Text
+        testID="review-section-title"
+        accessibilityLabel="review-section-title"
+        style={styles.sectionTitle}
+      >
+        Xếp hạng và đánh giá
+      </Text>
       <View
+        testID="rating-stars-container"
+        accessibilityLabel="rating-stars-container"
         style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}
       >
         <Image
+          testID="review-avatar"
+          accessibilityLabel="review-avatar"
           source={require('../assets/avt_default.jpg')}
           style={styles.avatar}
         />
-        <RatingStars
-          maxStars={5}
-          onRatingChange={value => {
-            setRating(value);
-            navigate.navigate('Review', { rating: value });
-          }}
-        />
+        <View testID="rating-stars" accessibilityLabel="rating-stars">
+          <RatingStars
+            maxStars={5}
+            onRatingChange={value => {
+              setRating(value);
+              navigate.navigate('Review', {
+                restaurantId: restaurantDetail?.restaurantId,
+              });
+            }}
+          />
+        </View>
       </View>
-      {/* <TextInput
-        style={styles.input}
-        placeholder="Nhập đánh giá của bạn..."
-        multiline
-        value={reviewText}
-        onChangeText={setReviewText}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleSubmitReview}>
-        <Text style={styles.buttonText}>Gửi đánh giá</Text>
-      </TouchableOpacity> */}
 
-      {/* Danh sách review */}
       <FlatList
-        data={mockReviews}
-        keyExtractor={item => item.id}
-        renderItem={renderReview}
+        ref={flatListRef}
+        testID="reviews-list"
+        accessibilityLabel="reviews-list"
+        data={loading ? [] : reviews}
+        keyExtractor={item => item.reviewId}
+        renderItem={({ item, index }) => (
+          <View
+            testID={`review-item-${index}`}
+            accessibilityLabel={`review-item-${index}`}
+          >
+            <ReviewItem item={item} />
+          </View>
+        )}
         scrollEnabled={false}
       />
     </ScrollView>
   );
-};
-
-export default RestaurantDetailScreen;
+}

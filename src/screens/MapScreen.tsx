@@ -1,155 +1,238 @@
-// import React from 'react';
-// import {
-//   View,
-//   TextInput,
-//   StyleSheet,
-//   TouchableOpacity,
-//   Image,
-// } from 'react-native';
-// import MapView, { Marker } from 'react-native-maps';
-// import styles from '../styles/MapStyles';
-// import { useNavigation } from '@react-navigation/native';
-
-// const MapScreen: React.FC = () => {
-//   const foodLocations = [
-//     { id: 1, lat: 16.0471, lon: 108.2068 },
-//     { id: 2, lat: 16.051, lon: 108.213 },
-//     { id: 3, lat: 16.058, lon: 108.22 },
-//   ];
-//   const navigate = useNavigation<any>();
-
-//   return (
-//     <View style={styles.container}>
-//       {/* Bản đồ */}
-//       <MapView
-//         style={StyleSheet.absoluteFillObject}
-//         initialRegion={{
-//           latitude: 16.0471,
-//           longitude: 108.2068,
-//           latitudeDelta: 0.05,
-//           longitudeDelta: 0.05,
-//         }}
-//       >
-//         {foodLocations.map(loc => (
-//           <Marker
-//             key={loc.id}
-//             coordinate={{ latitude: loc.lat, longitude: loc.lon }}
-//             title="Mì Quảng Bếp Trang"
-//             onPress={() => navigate.navigate('ShopDetail')}
-//           >
-//             <Image
-//               source={require('../assets/anh.jpg')}
-//               style={styles.markerImage}
-//             />
-//           </Marker>
-//         ))}
-//       </MapView>
-
-//       {/* Nút menu */}
-//       <TouchableOpacity style={styles.menuButton}>
-//         <Image
-//           source={require('../assets/menu.png')}
-//           style={{ width: 25, height: 25 }}
-//         />
-//       </TouchableOpacity>
-
-//       {/* Thanh tìm kiếm nổi */}
-//       <View style={styles.searchBar}>
-//         <Image
-//           source={require('../assets/gps.png')}
-//           style={{ width: 22, height: 22, marginRight: 8 }}
-//         />
-//         <TextInput
-//           placeholder="Search"
-//           placeholderTextColor="#777"
-//           style={styles.searchInput}
-//         />
-//         <Image
-//           source={require('../assets/search.png')}
-//           style={{ width: 22, height: 22, marginRight: 8 }}
-//         />
-//       </View>
-//     </View>
-//   );
-// };
-
-// export default MapScreen;
-
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
   Image,
+  StyleSheet,
+  Text,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Callout } from 'react-native-maps';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import styles from '../styles/MapStyles';
+import { getRestaurants } from '../api/apiConfig';
+import { getRole } from '../utils/auth';
+import { useFocusEffect } from '@react-navigation/native';
+import debounce from 'lodash/debounce';
+
+interface Restaurant {
+  restaurantId: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  images: {
+    photo: string;
+  };
+}
 
 const MapScreen: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<any>>();
   const stackNav = useNavigation<any>();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentZoom, setCurrentZoom] = useState<number | null>(null);
 
-  const foodLocations = [
-    { id: 1, lat: 16.0471, lon: 108.2068 },
-    { id: 2, lat: 16.051, lon: 108.213 },
-    { id: 3, lat: 16.058, lon: 108.22 },
-  ];
+  useFocusEffect(
+    useCallback(() => {
+      const checkLogin = async () => {
+        const token = await AsyncStorage.getItem('token');
+        const avatar = await AsyncStorage.getItem('avatarUrl');
+        setIsLoggedIn(!!token);
+        setAvatarUrl(avatar);
+      };
+      checkLogin();
+    }, []),
+  );
+  useEffect(() => {
+    const checkLogin = async () => {
+      const token = await AsyncStorage.getItem('token');
+      const avatar = await AsyncStorage.getItem('avatarUrl');
+      setIsLoggedIn(!!token);
+      setAvatarUrl(avatar);
+    };
+    checkLogin();
+  }, []);
+
+  // Hàm tính zoomLevel từ region
+  const getZoomLevel = (region: any) => {
+    const { longitudeDelta } = region;
+    return Math.round(Math.log2(360 / longitudeDelta));
+  };
+
+  // 🔹 Hàm gọi API khi zoom thay đổi (có debounce)
+  const fetchRestaurantsByZoom = useCallback(
+    debounce(async (zoomLevel: number) => {
+      console.log('Gọi API với zoomLevel:', zoomLevel);
+      try {
+        const res = await getRestaurants(zoomLevel);
+        console.log('Danh sách nhà hàng:', res.data);
+        setRestaurants(res.data || []);
+      } catch (err) {
+        console.error('Lỗi khi tải danh sách nhà hàng:', err);
+      } finally {
+        setLoading(false);
+      }
+    }, 800),
+    [],
+  );
+
+  // 🔹 Xử lý khi zoom/di chuyển bản đồ
+  // const handleRegionChange = useCallback(
+  //   (region: any) => {
+  //     const zoomLevel = getZoomLevel(region);
+  //     if (currentZoom === null || Math.abs(zoomLevel - currentZoom) >= 1) {
+  //       setCurrentZoom(zoomLevel);
+  //       fetchRestaurantsByZoom(zoomLevel);
+  //     }
+  //   },
+  //   [currentZoom, fetchRestaurantsByZoom],
+  // );
+  const handleRegionChange = useCallback(
+    (region: any) => {
+      const zoomLevel = getZoomLevel(region);
+      if (currentZoom === null) return; // Không gọi API nếu lần đầu
+      if (Math.abs(zoomLevel - currentZoom) >= 1) {
+        setCurrentZoom(zoomLevel);
+        fetchRestaurantsByZoom(zoomLevel);
+      }
+    },
+    [currentZoom, fetchRestaurantsByZoom],
+  );
+
+  // 🔹 Gọi API lần đầu khi mở map
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getRestaurants(15);
+        setRestaurants(res.data || []);
+        setCurrentZoom(15);
+        console.log(res.data);
+      } catch (err) {
+        console.error('Lỗi khi tải danh sách ban đầu:', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const handleAvatarPress = () => {
+    if (isLoggedIn) {
+      navigation.openDrawer();
+    } else {
+      stackNav.navigate('Login');
+    }
+  };
 
   return (
     <View style={styles.container}>
       <MapView
+        testID="MapView"
+        accessibilityLabel="MapView"
         style={StyleSheet.absoluteFillObject}
         initialRegion={{
-          latitude: 16.0471,
-          longitude: 108.2068,
+          latitude: 16.05009,
+          longitude: 108.22302,
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}
+        onRegionChangeComplete={handleRegionChange}
       >
-        {foodLocations.map(loc => (
+        {restaurants.map(item => (
           <Marker
-            key={loc.id}
-            coordinate={{ latitude: loc.lat, longitude: loc.lon }}
-            title="Mì Quảng Bếp Trang"
-            onPress={() => stackNav.navigate('ShopDetail')}
+            testID={`marker-${item.restaurantId}`}
+            accessibilityLabel={`marker-${item.restaurantId}`}
+            key={item.restaurantId}
+            coordinate={{
+              latitude: item.latitude,
+              longitude: item.longitude,
+            }}
+            onPress={() => {
+              console.log('Nhà hàng được chọn:', item);
+              stackNav.navigate('ShopDetail', { item });
+            }}
           >
             <Image
-              source={require('../assets/anh.jpg')}
+              testID={`marker-image-${item.restaurantId}`}
+              accessibilityLabel={`marker-image-${item.restaurantId}`}
+              source={{ uri: item.images.photo }}
               style={styles.markerImage}
             />
+            <Callout tooltip>
+              <View style={styles.callout}>
+                <Image
+                  testID={`callout-image-${item.restaurantId}`}
+                  accessibilityLabel={`callout-image-${item.restaurantId}`}
+                  source={{ uri: item.images.photo }}
+                  style={styles.thumbnail}
+                />
+                <View>
+                  <Text
+                    testID={`callout-name-${item.restaurantId}`}
+                    accessibilityLabel={`callout-name-${item.restaurantId}`}
+                    style={styles.name}
+                  >
+                    {item.name}
+                  </Text>
+                  <Text
+                    testID={`callout-address-${item.restaurantId}`}
+                    accessibilityLabel={`callout-address-${item.restaurantId}`}
+                    style={styles.address}
+                  >
+                    {item.address}
+                  </Text>
+                </View>
+              </View>
+            </Callout>
           </Marker>
         ))}
       </MapView>
 
-      {/* Nút menu */}
-      <TouchableOpacity
-        style={styles.menuButton}
-        onPress={() => navigation.openDrawer()}
+      <View
+        style={styles.searchBarContainer}
+        testID="search-bar-container"
+        accessibilityLabel="search-bar-container"
       >
-        <Image
-          source={require('../assets/menu.png')}
-          style={{ width: 25, height: 25 }}
-        />
-      </TouchableOpacity>
+        <View
+          style={styles.searchBar}
+          testID="search-bar"
+          accessibilityLabel="search-bar"
+        >
+          <Image source={require('../assets/gps.png')} style={styles.mapIcon} />
 
-      {/* Thanh tìm kiếm */}
-      <View style={styles.searchBar}>
-        <Image
-          source={require('../assets/gps.png')}
-          style={{ width: 22, height: 22, marginRight: 8 }}
-        />
-        <TextInput
-          placeholder="Search"
-          placeholderTextColor="#777"
-          style={styles.searchInput}
-        />
-        <Image
-          source={require('../assets/search.png')}
-          style={{ width: 22, height: 22, marginRight: 8 }}
-        />
+          {/* Ô nhập */}
+          <TextInput
+            testID="search-input"
+            accessibilityLabel="search-input"
+            placeholder="Tìm kiếm ở đây"
+            placeholderTextColor="#555"
+            style={styles.searchInput}
+          />
+
+          {/* Avatar hoặc icon đăng nhập */}
+          <TouchableOpacity
+            testID="button-avt"
+            accessibilityLabel="button-avt"
+            onPress={handleAvatarPress}
+          >
+            <Image
+              source={
+                isLoggedIn
+                  ? avatarUrl
+                    ? { uri: avatarUrl }
+                    : require('../assets/avt_default.jpg')
+                  : require('../assets/menu.png')
+              }
+              style={styles.avatar}
+              testID="avatar-image"
+              accessibilityLabel="avatar-image"
+            />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

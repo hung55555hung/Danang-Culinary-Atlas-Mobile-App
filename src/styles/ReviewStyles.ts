@@ -43,4 +43,23 @@ export default StyleSheet.create({
   avatar: { width: 50, height: 50, borderRadius: 25 },
   userName: { fontSize: 16, fontWeight: '600' },
   public: { fontSize: 14, color: 'gray' },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#777',
+    borderRadius: 6,
+    padding: 10,
+    marginTop: 20,
+  },
+  uploadIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
+    tintColor: '#444',
+  },
+  uploadText: {
+    fontSize: 15,
+    color: '#444',
+  },
 });

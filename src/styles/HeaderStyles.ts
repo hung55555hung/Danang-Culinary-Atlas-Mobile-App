@@ -7,8 +7,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   backArrow: {
-    width: 22,
-    height: 22,
+    width: 30,
+    height: 25,
     tintColor: '#fff',
   },
   title: {
@@ -16,6 +16,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     marginLeft: 5,
+    flex: 1,
+    textAlign: 'center',
   },
 });
 

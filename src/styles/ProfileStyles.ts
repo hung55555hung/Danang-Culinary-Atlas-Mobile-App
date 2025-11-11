@@ -16,10 +16,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1F1F1F',
     marginLeft: 5,
+    flex: 1,
+    textAlign: 'center',
   },
   backArrow: {
-    width: 22,
-    height: 22,
+    width: 25,
+    height: 25,
     tintColor: '#1F1F1F',
   },
   headerBackground: {
@@ -122,6 +124,29 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  callout: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 8,
+    width: 250,
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  address: {
+    fontSize: 12,
+    color: '#555',
   },
 });
 
