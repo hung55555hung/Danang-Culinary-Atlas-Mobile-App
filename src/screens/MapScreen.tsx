@@ -6,6 +6,7 @@ import {
   Image,
   StyleSheet,
   Text,
+  ActivityIndicator,
 } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,7 +14,6 @@ import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import styles from '../styles/MapStyles';
 import { getRestaurants } from '../api/apiConfig';
-import { getRole } from '../utils/auth';
 import { useFocusEffect } from '@react-navigation/native';
 import debounce from 'lodash/debounce';
 
@@ -33,9 +33,10 @@ const MapScreen: React.FC = () => {
   const stackNav = useNavigation<any>();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentZoom, setCurrentZoom] = useState<number | null>(null);
+  const [mapKey, setMapKey] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -48,15 +49,6 @@ const MapScreen: React.FC = () => {
       checkLogin();
     }, []),
   );
-  useEffect(() => {
-    const checkLogin = async () => {
-      const token = await AsyncStorage.getItem('token');
-      const avatar = await AsyncStorage.getItem('avatarUrl');
-      setIsLoggedIn(!!token);
-      setAvatarUrl(avatar);
-    };
-    checkLogin();
-  }, []);
 
   // Hàm tính zoomLevel từ region
   const getZoomLevel = (region: any) => {
@@ -67,31 +59,36 @@ const MapScreen: React.FC = () => {
   // 🔹 Hàm gọi API khi zoom thay đổi (có debounce)
   const fetchRestaurantsByZoom = useCallback(
     debounce(async (zoomLevel: number) => {
-      console.log('Gọi API với zoomLevel:', zoomLevel);
+      console.log('🔍 Gọi API với zoomLevel:', zoomLevel);
       try {
         const res = await getRestaurants(zoomLevel);
-        console.log('Danh sách nhà hàng:', res.data);
-        setRestaurants(res.data || []);
+        console.log('📍 Danh sách nhà hàng:', res.data?.length);
+
+        // Lọc nhà hàng có tọa độ hợp lệ
+        const validRestaurants = (res.data || []).filter((item: Restaurant) => {
+          const isValid =
+            item.latitude &&
+            item.longitude &&
+            item.latitude !== 0 &&
+            item.longitude !== 0;
+
+          if (!isValid) {
+            console.warn('⚠️ Nhà hàng thiếu tọa độ:', item.name);
+          }
+          return isValid;
+        });
+
+        console.log('✅ Nhà hàng hợp lệ:', validRestaurants.length);
+        setRestaurants(validRestaurants);
+        // ❌ BỎ dòng này: setMapKey(prev => prev + 1);
       } catch (err) {
-        console.error('Lỗi khi tải danh sách nhà hàng:', err);
-      } finally {
-        setLoading(false);
+        console.error('❌ Lỗi khi tải danh sách nhà hàng:', err);
       }
     }, 800),
     [],
   );
 
   // 🔹 Xử lý khi zoom/di chuyển bản đồ
-  // const handleRegionChange = useCallback(
-  //   (region: any) => {
-  //     const zoomLevel = getZoomLevel(region);
-  //     if (currentZoom === null || Math.abs(zoomLevel - currentZoom) >= 1) {
-  //       setCurrentZoom(zoomLevel);
-  //       fetchRestaurantsByZoom(zoomLevel);
-  //     }
-  //   },
-  //   [currentZoom, fetchRestaurantsByZoom],
-  // );
   const handleRegionChange = useCallback(
     (region: any) => {
       const zoomLevel = getZoomLevel(region);
@@ -108,17 +105,40 @@ const MapScreen: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
+        console.log('🚀 Đang tải danh sách nhà hàng ban đầu...');
         const res = await getRestaurants(15);
-        setRestaurants(res.data || []);
+        console.log('📍 API trả về:', res.data?.length, 'nhà hàng');
+
+        // Lọc nhà hàng có tọa độ hợp lệ
+        const validRestaurants = (res.data || []).filter((item: Restaurant) => {
+          const isValid =
+            item.latitude &&
+            item.longitude &&
+            item.latitude !== 0 &&
+            item.longitude !== 0;
+
+          if (!isValid) {
+            console.warn('⚠️ Nhà hàng thiếu tọa độ:', item.name);
+          }
+          return isValid;
+        });
+
+        console.log('✅ Nhà hàng hợp lệ:', validRestaurants.length);
+        setRestaurants(validRestaurants);
         setCurrentZoom(15);
-        console.log(res.data);
+        setMapKey(prev => prev + 1); // ✅ Chỉ set một lần khi load đầu tiên
       } catch (err) {
-        console.error('Lỗi khi tải danh sách ban đầu:', err);
+        console.error('❌ Lỗi khi tải danh sách ban đầu:', err);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
+
+  // Debug: Log khi restaurants thay đổi
+  useEffect(() => {
+    console.log('🔄 Restaurants state updated:', restaurants.length);
+  }, [restaurants]);
 
   const handleAvatarPress = () => {
     if (isLoggedIn) {
@@ -128,9 +148,20 @@ const MapScreen: React.FC = () => {
     }
   };
 
+  // Hiển thị loading indicator khi đang tải dữ liệu
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#1E90FF" />
+        <Text style={{ marginTop: 10, color: '#666' }}>Đang tải bản đồ...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <MapView
+        key={mapKey}
         testID="MapView"
         accessibilityLabel="MapView"
         style={StyleSheet.absoluteFillObject}
@@ -142,54 +173,63 @@ const MapScreen: React.FC = () => {
         }}
         onRegionChangeComplete={handleRegionChange}
       >
-        {restaurants.map(item => (
-          <Marker
-            testID={`marker-${item.restaurantId}`}
-            accessibilityLabel={`marker-${item.restaurantId}`}
-            key={item.restaurantId}
-            coordinate={{
-              latitude: item.latitude,
-              longitude: item.longitude,
-            }}
-            onPress={() => {
-              console.log('Nhà hàng được chọn:', item);
-              stackNav.navigate('ShopDetail', { item });
-            }}
-          >
-            <Image
-              testID={`marker-image-${item.restaurantId}`}
-              accessibilityLabel={`marker-image-${item.restaurantId}`}
-              source={{ uri: item.images.photo }}
-              style={styles.markerImage}
-            />
-            <Callout tooltip>
-              <View style={styles.callout}>
-                <Image
-                  testID={`callout-image-${item.restaurantId}`}
-                  accessibilityLabel={`callout-image-${item.restaurantId}`}
-                  source={{ uri: item.images.photo }}
-                  style={styles.thumbnail}
-                />
-                <View>
-                  <Text
-                    testID={`callout-name-${item.restaurantId}`}
-                    accessibilityLabel={`callout-name-${item.restaurantId}`}
-                    style={styles.name}
-                  >
-                    {item.name}
-                  </Text>
-                  <Text
-                    testID={`callout-address-${item.restaurantId}`}
-                    accessibilityLabel={`callout-address-${item.restaurantId}`}
-                    style={styles.address}
-                  >
-                    {item.address}
-                  </Text>
+        {restaurants.map(item => {
+          return (
+            <Marker
+              testID={`marker-${item.restaurantId}`}
+              accessibilityLabel={`marker-${item.restaurantId}`}
+              key={item.restaurantId}
+              coordinate={{
+                latitude: item.latitude,
+                longitude: item.longitude,
+              }}
+              onPress={() => {
+                console.log('🏪 Nhà hàng được chọn:', item.name);
+                stackNav.navigate('ShopDetail', { item });
+              }}
+            >
+              <Image
+                testID={`marker-image-${item.restaurantId}`}
+                accessibilityLabel={`marker-image-${item.restaurantId}`}
+                source={{ uri: item.images?.photo }}
+                style={styles.markerImage}
+                onError={e => {
+                  console.warn(
+                    '❌ Lỗi load ảnh marker:',
+                    item.name,
+                    e.nativeEvent.error,
+                  );
+                }}
+              />
+              <Callout tooltip>
+                <View style={styles.callout}>
+                  <Image
+                    testID={`callout-image-${item.restaurantId}`}
+                    accessibilityLabel={`callout-image-${item.restaurantId}`}
+                    source={{ uri: item.images?.photo }}
+                    style={styles.thumbnail}
+                  />
+                  <View>
+                    <Text
+                      testID={`callout-name-${item.restaurantId}`}
+                      accessibilityLabel={`callout-name-${item.restaurantId}`}
+                      style={styles.name}
+                    >
+                      {item.name}
+                    </Text>
+                    <Text
+                      testID={`callout-address-${item.restaurantId}`}
+                      accessibilityLabel={`callout-address-${item.restaurantId}`}
+                      style={styles.address}
+                    >
+                      {item.address}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            </Callout>
-          </Marker>
-        ))}
+              </Callout>
+            </Marker>
+          );
+        })}
       </MapView>
 
       <View
@@ -202,9 +242,13 @@ const MapScreen: React.FC = () => {
           testID="search-bar"
           accessibilityLabel="search-bar"
         >
-          <Image source={require('../assets/gps.png')} style={styles.mapIcon} />
+          <Image
+            source={require('../assets/gps.png')}
+            style={styles.mapIcon}
+            testID="gps-icon"
+            accessibilityLabel="gps-icon"
+          />
 
-          {/* Ô nhập */}
           <TextInput
             testID="search-input"
             accessibilityLabel="search-input"
@@ -213,7 +257,6 @@ const MapScreen: React.FC = () => {
             style={styles.searchInput}
           />
 
-          {/* Avatar hoặc icon đăng nhập */}
           <TouchableOpacity
             testID="button-avt"
             accessibilityLabel="button-avt"

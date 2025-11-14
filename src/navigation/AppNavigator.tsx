@@ -48,8 +48,8 @@ export default function AppNavigator() {
   return (
     <NavigationContainer linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Drawer" component={DrawerNavigator} />
+        <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="ShopDetail" component={ShopDetailScreen} />
         <Stack.Screen name="Review" component={ReviewScreen} />
         <Stack.Screen name="Notification" component={NotificationScreen} />

@@ -87,13 +87,13 @@ export const createRestaurant = async (data: {
   wardId: number;
   latitude: number;
   longitude: number;
+  tagIds: number[];
   openingHours: {
-    key_0: string;
-    key_1: string;
+    [key: string]: string;
   };
-  images: { photo: string };
+  images: { [key: string]: string };
 }) => {
-  return API.post('/restaurants', data);
+  return API.put('/restaurants', data);
 };
 
 export const createReview = async (data: {
@@ -118,6 +118,10 @@ export const requestPasswordReset = async (data: {
   platform: 'mobile';
 }) => {
   return API.post('/auth/forgot-password', data);
+};
+
+export const getRestaurantTags = async () => {
+  return API.get('/tags/restaurant');
 };
 
 export default API;

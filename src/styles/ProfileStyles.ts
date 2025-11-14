@@ -148,6 +148,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#555',
   },
+  updateButton: {
+    backgroundColor: '#1E90FF',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    margin: 20,
+    marginTop: 10,
+  },
+  updateText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
 export default styles;

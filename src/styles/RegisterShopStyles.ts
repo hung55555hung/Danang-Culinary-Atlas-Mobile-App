@@ -82,4 +82,77 @@ export default StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  sectionContainer: {
+    marginVertical: 15,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  tagButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#1E90FF',
+    backgroundColor: '#fff',
+  },
+  tagButtonSelected: {
+    backgroundColor: '#1E90FF',
+  },
+  tagButtonText: {
+    fontSize: 14,
+    color: '#1E90FF',
+  },
+  tagButtonTextSelected: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  selectedTagsText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  imagePreviewContainer: {
+    marginVertical: 15,
+    paddingHorizontal: 10,
+  },
+  imagePreviewWrapper: {
+    position: 'relative',
+    marginRight: 10,
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: 'red',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeImageText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
 });
