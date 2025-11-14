@@ -18,21 +18,35 @@ import { useProfile } from '../hooks/useProfile';
 import { useImagePicker } from '../hooks/useImagePicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { handleImagePreview } from '../utils/imagePreview';
+import { updateUserProfile } from '../api/apiConfig'; // thêm
 
 export default function ProfileScreen() {
   const navigation = useNavigation<any>();
   const { loading, profile, setProfile, savePersonalInfo, saveSecurityInfo } =
     useProfile();
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const { images, handleAddPhoto } = useImagePicker();
+  console.log('Profile trong ProfileScreen:', profile.avatarUrl);
 
+  // dùng single + lấy localImages để preview, và uploadSingleImage khi lưu
+  const {
+    localImages,
+    handleAddPhoto,
+    uploadSingleImage,
+    setInitialImage,
+    uploading,
+  } = useImagePicker('single');
+
+  // đồng bộ ảnh hiện tại từ profile vào preview ban đầu
   useEffect(() => {
-    if (images.length > 0) {
-      const latestImage = images[images.length - 1];
-      setProfile(prev => ({ ...prev, avatarUrl: latestImage }));
-      AsyncStorage.setItem('avatarUrl', latestImage);
+    const avatarUri =
+      typeof profile.avatarUrl === 'string'
+        ? profile.avatarUrl
+        : profile.avatarUrl?.uri; // ✅ Lấy uri từ object
+
+    if (avatarUri) {
+      setInitialImage(avatarUri);
     }
-  }, [images]);
+  }, [profile.avatarUrl]);
 
   if (loading) {
     return (
@@ -42,8 +56,48 @@ export default function ProfileScreen() {
     );
   }
 
-  const onChangeAvatar = async () => {
+  const onChangeAvatar = () => {
     handleAddPhoto();
+  };
+
+  // Lưu thông tin + cập nhật avatar nếu cần
+  const onSavePersonal = async () => {
+    try {
+      let avatarUrl = profile.avatarUrl as string | undefined;
+
+      // Ưu tiên ảnh mới chọn
+      const selected = localImages[0];
+      if (selected) {
+        if (selected.startsWith('http')) {
+          avatarUrl = selected;
+        } else if (
+          selected.startsWith('file://') ||
+          selected.startsWith('content://')
+        ) {
+          avatarUrl = await uploadSingleImage();
+        }
+      }
+
+      const payload = {
+        fullName: profile.name,
+        avatarUrl: avatarUrl || undefined,
+        dob: profile.dob ? profile.dob.toISOString().split('T')[0] : null,
+        phone: profile.phone,
+        gender: profile.gender,
+      };
+
+      await updateUserProfile(payload);
+
+      if (avatarUrl) {
+        setProfile(prev => ({ ...prev, avatarUrl })); // luôn lưu string
+        await AsyncStorage.setItem('avatarUrl', avatarUrl);
+      }
+
+      Alert.alert('✅ Thành công', 'Cập nhật thông tin cá nhân thành công!');
+    } catch (e) {
+      console.error(e);
+      Alert.alert('❌ Lỗi', 'Không thể cập nhật thông tin.');
+    }
   };
 
   return (
@@ -58,16 +112,13 @@ export default function ProfileScreen() {
         testID="profile-header-bg"
         accessibilityLabel="profile-header-bg"
       >
-        {/* Header */}
         <View
           style={styles.header}
           testID="profile-header"
           accessibilityLabel="profile-header"
         >
           <TouchableOpacity
-            onPress={() => {
-              navigation.goBack();
-            }}
+            onPress={() => navigation.goBack()}
             testID="profile-back-button"
             accessibilityLabel="profile-back-button"
           >
@@ -95,28 +146,23 @@ export default function ProfileScreen() {
         accessibilityLabel="profile-avatar-container"
       >
         <TouchableOpacity
-          onPress={() =>
-            handleImagePreview(
-              navigation,
-              typeof profile.avatarUrl === 'string'
-                ? profile.avatarUrl
-                : profile.avatarUrl?.uri,
-              [
-                typeof profile.avatarUrl === 'string'
-                  ? profile.avatarUrl
-                  : profile.avatarUrl?.uri,
-              ],
-            )
-          }
+          onPress={() => {
+            const uri =
+              localImages[0] ||
+              (typeof profile.avatarUrl === 'string' ? profile.avatarUrl : '');
+            if (uri) handleImagePreview(navigation, uri, [uri]);
+          }}
           testID="profile-avatar-image"
           accessibilityLabel="profile-avatar-image"
         >
           <Image
             source={
-              profile.avatarUrl
-                ? profile.avatarUrl.uri
-                  ? profile.avatarUrl
-                  : { uri: profile.avatarUrl }
+              localImages[0]
+                ? { uri: localImages[0] }
+                : typeof profile.avatarUrl === 'string' && profile.avatarUrl
+                ? { uri: profile.avatarUrl }
+                : profile.avatarUrl?.uri // ✅ Thêm fallback cho object
+                ? { uri: profile.avatarUrl.uri }
                 : require('../assets/avt_default.jpg')
             }
             style={styles.avatar}
@@ -153,7 +199,6 @@ export default function ProfileScreen() {
         >
           {profile.name}
         </Text>
-
         <View
           style={styles.infoRow}
           testID="profile-phone-row"
@@ -171,7 +216,6 @@ export default function ProfileScreen() {
             {profile.phone}
           </Text>
         </View>
-
         <View
           style={styles.infoRow}
           testID="profile-dob-row"
@@ -254,9 +298,7 @@ export default function ProfileScreen() {
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             onChange={(event, selectedDate) => {
               setShowDatePicker(false);
-              if (selectedDate) {
-                setProfile({ ...profile, dob: selectedDate });
-              }
+              if (selectedDate) setProfile({ ...profile, dob: selectedDate });
             }}
           />
         )}
@@ -299,21 +341,20 @@ export default function ProfileScreen() {
 
         <TouchableOpacity
           style={styles.saveButton}
-          onPress={savePersonalInfo}
+          onPress={onSavePersonal}
+          disabled={uploading}
           testID="profile-save-personal-button"
           accessibilityLabel="profile-save-personal-button"
         >
-          <Text
-            style={styles.saveText}
-            testID="profile-save-personal-text"
-            accessibilityLabel="profile-save-personal-text"
-          >
-            Lưu
-          </Text>
+          {uploading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.saveText}>Lưu</Text>
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* Security Section */}
+      {/* Security Section giữ nguyên */}
       <View
         style={styles.section}
         testID="profile-security-section"

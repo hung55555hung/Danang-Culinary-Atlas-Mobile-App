@@ -1,33 +1,49 @@
 import { Alert } from 'react-native';
-import { useImagePicker } from './useImagePicker';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createReview } from '../api/apiConfig';
 import { useNavigation } from '@react-navigation/native';
 
 export const useCreateReview = (restaurantId: string) => {
-  const { images, handleAddPhoto, setImages } = useImagePicker();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [uploading, setUploading] = useState(false);
   const navigation = useNavigation<any>();
 
-  const handleSubmit = async () => {
+  // ✅ Nhận images từ ReviewScreen thay vì từ hook
+  const handleSubmit = async (images: string[]) => {
     if (rating === 0) {
       Alert.alert('Thông báo', 'Vui lòng chọn số sao trước khi gửi!');
       return;
     }
 
-    const payload = { comment, rating, restaurantId, images };
+    if (!comment.trim()) {
+      Alert.alert('Thông báo', 'Vui lòng nhập bình luận!');
+      return;
+    }
+
+    const payload = {
+      restaurantId,
+      rating,
+      comment: comment.trim(),
+      images: images,
+    };
 
     try {
+      setUploading(true);
+      console.log('📤 Sending review payload:', payload);
       await createReview(payload);
-      Alert.alert('Đánh giá thành công!');
-      navigation.navigate('ShopDetail', { item: { restaurantId } });
+
+      Alert.alert('✅ Thành công', 'Đánh giá của bạn đã được gửi!');
+      navigation.navigate('ShopDetail', { restaurantId });
+
+      // Reset form
       setRating(0);
       setComment('');
-      setImages([]);
     } catch (err) {
-      console.error(err);
-      Alert.alert('Gửi đánh giá thất bại');
+      console.error('❌ Error creating review:', err);
+      Alert.alert('❌ Lỗi', 'Gửi đánh giá thất bại. Vui lòng thử lại.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -36,8 +52,7 @@ export const useCreateReview = (restaurantId: string) => {
     setRating,
     comment,
     setComment,
-    images,
-    handleAddPhoto,
+    uploading,
     handleSubmit,
   };
 };

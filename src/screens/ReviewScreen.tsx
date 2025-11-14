@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  ScrollView,
+  ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import RatingStars from '../components/RatingStars';
 import styles from '../styles/ReviewStyles';
@@ -18,15 +21,17 @@ const ReviewScreen: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const route = useRoute<any>();
   const { restaurantId } = route.params;
+  const { handleSubmit, rating, setRating, comment, setComment, uploading } =
+    useCreateReview(restaurantId);
+
+  // ✅ Dùng useImagePicker ở chế độ multiple
   const {
-    handleSubmit,
-    rating,
-    setRating,
-    comment,
-    setComment,
-    images,
+    localImages,
     handleAddPhoto,
-  } = useCreateReview(restaurantId);
+    removeImage,
+    uploadAllImages,
+    uploading: imageuploading,
+  } = useImagePicker('multiple');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -36,8 +41,30 @@ const ReviewScreen: React.FC = () => {
     fetchUserData();
   }, []);
 
+  // ✅ Override handleSubmit để upload ảnh trước
+  const onSubmitWithImages = async () => {
+    if (rating === 0) {
+      Alert.alert('Thông báo', 'Vui lòng chọn số sao trước khi gửi!');
+      return;
+    }
+
+    try {
+      // Upload ảnh nếu có
+      let uploadedImages: string[] = [];
+      if (localImages.length > 0) {
+        uploadedImages = await uploadAllImages();
+      }
+
+      // Gọi handleSubmit với ảnh đã upload
+      await handleSubmit(uploadedImages);
+    } catch (err) {
+      console.error('Error submitting review:', err);
+      Alert.alert('❌ Lỗi', 'Gửi đánh giá thất bại');
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {/* Header */}
       <Text style={styles.title}>Mỳ quán bếp Trang</Text>
 
@@ -52,8 +79,11 @@ const ReviewScreen: React.FC = () => {
           <Text style={styles.public}>Đăng công khai</Text>
         </View>
       </View>
+
+      {/* Rating */}
       <RatingStars maxStars={5} onRatingChange={setRating} />
 
+      {/* Comment */}
       <Text style={styles.label}>Viết nhận xét của bạn:</Text>
       <TextInput
         style={styles.input}
@@ -65,18 +95,63 @@ const ReviewScreen: React.FC = () => {
       />
 
       {/* Nút thêm ảnh */}
-      <TouchableOpacity style={styles.uploadButton} onPress={handleAddPhoto}>
+      <TouchableOpacity
+        style={styles.uploadButton}
+        onPress={handleAddPhoto}
+        testID="btn-add-photo"
+        accessibilityLabel="btn-add-photo"
+      >
         <Image
           source={require('../assets/add_image.png')}
           style={styles.uploadIcon}
         />
-        <Text style={styles.uploadText}>Thêm ảnh và video</Text>
+        <Text style={styles.uploadText}>
+          Thêm ảnh ({localImages.length}/10)
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Gửi đánh giá</Text>
+      {/* Preview ảnh đã chọn */}
+      {localImages.length > 0 && (
+        <View style={styles.imagePreviewContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {localImages.map((uri, index) => (
+              <View key={index} style={styles.imagePreviewWrapper}>
+                <Image
+                  source={{ uri }}
+                  style={styles.imagePreview}
+                  testID={`preview-image-${index}`}
+                  accessibilityLabel={`preview-image-${index}`}
+                />
+                <TouchableOpacity
+                  style={styles.removeImageButton}
+                  onPress={() => removeImage(index)}
+                  testID={`btn-remove-${index}`}
+                  accessibilityLabel={`btn-remove-${index}`}
+                >
+                  <Text style={styles.removeImageText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Nút gửi */}
+      <TouchableOpacity
+        style={[
+          styles.button,
+          (uploading || imageuploading) && { opacity: 0.6 }, // ✅ Fix
+        ]}
+        onPress={onSubmitWithImages}
+        disabled={uploading || imageuploading}
+      >
+        {uploading || imageuploading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Gửi đánh giá</Text>
+        )}
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 

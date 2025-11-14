@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { uploadToCloudinary } from '../utils/uploadToCloudinary';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-
 type ImagePickerMode = 'single' | 'multiple';
 
 export const useImagePicker = (mode: ImagePickerMode = 'multiple') => {
@@ -51,10 +50,8 @@ export const useImagePicker = (mode: ImagePickerMode = 'multiple') => {
           )}MB). Tối đa 5MB`,
         };
       }
-
       const ext = uri.split('.').pop()?.toLowerCase() || '';
       const validExtensions = ['jpg', 'jpeg', 'png'];
-
       if (!validExtensions.includes(ext)) {
         return {
           valid: false,
@@ -63,7 +60,6 @@ export const useImagePicker = (mode: ImagePickerMode = 'multiple') => {
           )}`,
         };
       }
-
       return { valid: true };
     } catch (error) {
       return {
@@ -76,7 +72,6 @@ export const useImagePicker = (mode: ImagePickerMode = 'multiple') => {
   const handleResult = async (result: any) => {
     if (result.assets && result.assets.length > 0) {
       const newLocalImages: string[] = [];
-
       for (const asset of result.assets) {
         if (asset.uri) {
           const validation = await validateImageFile(asset.uri);
