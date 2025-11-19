@@ -18,16 +18,13 @@ import { useProfile } from '../hooks/useProfile';
 import { useImagePicker } from '../hooks/useImagePicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { handleImagePreview } from '../utils/imagePreview';
-import { updateUserProfile } from '../api/apiConfig'; // thêm
+import { updateUserProfile, changePassword } from '../api/apiConfig'; // thêm
 
 export default function ProfileScreen() {
   const navigation = useNavigation<any>();
   const { loading, profile, setProfile, savePersonalInfo, saveSecurityInfo } =
     useProfile();
   const [showDatePicker, setShowDatePicker] = useState(false);
-  console.log('Profile trong ProfileScreen:', profile.avatarUrl);
-
-  // dùng single + lấy localImages để preview, và uploadSingleImage khi lưu
   const {
     localImages,
     handleAddPhoto,
@@ -36,13 +33,16 @@ export default function ProfileScreen() {
     uploading,
   } = useImagePicker('single');
 
-  // đồng bộ ảnh hiện tại từ profile vào preview ban đầu
+  // Các state cho đổi mật khẩu
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
   useEffect(() => {
     const avatarUri =
       typeof profile.avatarUrl === 'string'
         ? profile.avatarUrl
-        : profile.avatarUrl?.uri; // ✅ Lấy uri từ object
-
+        : profile.avatarUrl?.uri;
     if (avatarUri) {
       setInitialImage(avatarUri);
     }
@@ -97,6 +97,36 @@ export default function ProfileScreen() {
     } catch (e) {
       console.error(e);
       Alert.alert('❌ Lỗi', 'Không thể cập nhật thông tin.');
+    }
+  };
+
+  // Hàm xử lý đổi mật khẩu
+  const onChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ thông tin.');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      Alert.alert('Lỗi', 'Mật khẩu mới và xác nhận không khớp.');
+      return;
+    }
+    try {
+      await changePassword({
+        currentPassword,
+        newPassword,
+        confirmPassword: confirmNewPassword,
+      });
+      Alert.alert('Thành công', 'Đổi mật khẩu thành công!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch (error: any) {
+      // Xử lý lỗi trả về từ BE (nếu có message)
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Đổi mật khẩu thất bại. Vui lòng thử lại.';
+      Alert.alert('Lỗi', msg);
     }
   };
 
@@ -365,63 +395,39 @@ export default function ProfileScreen() {
           testID="profile-security-title"
           accessibilityLabel="profile-security-title"
         >
-          Bảo mật
+          Thay đổi mật khẩu
         </Text>
 
-        <Text
-          style={styles.label}
-          testID="profile-email-label"
-          accessibilityLabel="profile-email-label"
-        >
-          Địa chỉ Email:
-        </Text>
+        <Text style={styles.label}>Mật khẩu hiện tại:</Text>
         <TextInput
           style={styles.input}
-          value={profile.email}
-          editable={false}
-          testID="profile-email-input"
-          accessibilityLabel="profile-email-input"
+          value={currentPassword}
+          onChangeText={setCurrentPassword}
+          secureTextEntry
+          placeholder="Nhập mật khẩu hiện tại"
         />
 
-        <Text
-          style={styles.label}
-          testID="profile-password-label"
-          accessibilityLabel="profile-password-label"
-        >
-          Mật khẩu:
-        </Text>
+        <Text style={styles.label}>Mật khẩu mới:</Text>
         <TextInput
           style={styles.input}
-          value={profile.password}
+          value={newPassword}
+          onChangeText={setNewPassword}
           secureTextEntry
-          onChangeText={text => setProfile({ ...profile, password: text })}
-          testID="profile-password-input"
-          accessibilityLabel="profile-password-input"
-          placeholder="Nhập mật khẩu"
+          placeholder="Nhập mật khẩu mới"
         />
 
-        <Text
-          style={styles.label}
-          testID="profile-confirm-password-label"
-          accessibilityLabel="profile-confirm-password-label"
-        >
-          Xác nhận mật khẩu:
-        </Text>
+        <Text style={styles.label}>Xác nhận mật khẩu mới:</Text>
         <TextInput
           style={styles.input}
-          value={profile.confirmPassword}
+          value={confirmNewPassword}
+          onChangeText={setConfirmNewPassword}
           secureTextEntry
-          onChangeText={text =>
-            setProfile({ ...profile, confirmPassword: text })
-          }
-          testID="profile-confirm-password-input"
-          accessibilityLabel="profile-confirm-password-input"
-          placeholder="Xác nhận mật khẩu"
+          placeholder="Xác nhận mật khẩu mới"
         />
 
         <TouchableOpacity
           style={styles.saveButton}
-          onPress={saveSecurityInfo}
+          onPress={onChangePassword}
           testID="profile-save-security-button"
           accessibilityLabel="profile-save-security-button"
         >

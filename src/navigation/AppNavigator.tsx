@@ -16,7 +16,9 @@ import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import ImagePreviewScreen from '../screens/ImagePreviewScreen';
 import { LinkingOptions } from '@react-navigation/native';
-
+import AddShopScreen from '../screens/AddShopScreen';
+import VendorDishesScreen from '../screens/VendorDishesScreen';
+import AddDishScreen from '../screens/AddDishScreen';
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: ['atlasculinary://'],
   config: {
@@ -40,6 +42,9 @@ export type RootStackParamList = {
   ResetPassword: { token: string };
   ForgotPassword: undefined;
   ImagePreview: undefined;
+  AddShop: undefined;
+  VendorDishes: undefined;
+  AddDish: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -65,6 +70,9 @@ export default function AppNavigator() {
           component={ImagePreviewScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen name="AddShop" component={AddShopScreen} />
+        <Stack.Screen name="VendorDishes" component={VendorDishesScreen} />
+        <Stack.Screen name="AddDish" component={AddDishScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

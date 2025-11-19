@@ -124,4 +124,44 @@ export const getRestaurantTags = async () => {
   return API.get('/tags/restaurant');
 };
 
+export const changePassword = async (payload: {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}) => {
+  const response = await API.put('/auth/change-password', payload);
+  return response.data;
+};
+
+export const getVendorRestaurants = async (vendorId: string) => {
+  const res = await API.get(`/vendors/${vendorId}/restaurants`);
+  return res.data.content;
+};
+
+export const deleteRestaurant = async (restaurantId: string) => {
+  const res = await API.delete(`/restaurants/${restaurantId}`);
+  return res.data;
+};
+
+export const getVendorDishes = async (restaurantId: string) => {
+  const res = await API.get(`/restaurants/${restaurantId}/vendor-dishes`);
+  return res.data.content;
+};
+
+export const createDish = async (data: {
+  restaurantId: string;
+  name: string;
+  images: string[];
+  description: string;
+  price: number;
+  status: string;
+}) => {
+  const res = await API.post('/dishes', data);
+  return res.data;
+};
+export const getDishesOfRestaurant = async (restaurantId: string) => {
+  const res = await API.get(`/restaurants/${restaurantId}/dishes`);
+  return res.data.content;
+};
+
 export default API;

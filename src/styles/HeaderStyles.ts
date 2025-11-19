@@ -4,7 +4,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 25,
   },
   backArrow: {
     width: 30,

@@ -157,7 +157,7 @@ export const useRegisterShop = () => {
 
       console.log('✅ Response:', response.data);
       Alert.alert('✅ Thành công', 'Đăng ký quán thành công!');
-      navigation.goBack();
+      navigation.navigate('AddShop');
     } catch (error: any) {
       console.error('❌ Error:', error);
       console.error(

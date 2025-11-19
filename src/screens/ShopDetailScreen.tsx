@@ -6,6 +6,8 @@ import {
   FlatList,
   TouchableOpacity,
   ScrollView,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import RatingStars from '../components/RatingStars';
@@ -14,8 +16,9 @@ import RestaurantInfo from '../components/RestaurantInfo';
 import { useRestaurantDetail } from '../hooks/useRestaurantDetail';
 import { useRestaurantReviews } from '../hooks/useRestaurantReviews';
 import styles from '../styles/ShopDetailStyles';
-import { getRestaurantById } from '../api/apiConfig';
+import { getRestaurantById, getDishesOfRestaurant } from '../api/apiConfig';
 import { handleImagePreview } from '../utils/imagePreview';
+import { get } from 'lodash';
 
 export default function RestaurantDetailScreen() {
   const route = useRoute<any>();
@@ -28,6 +31,9 @@ export default function RestaurantDetailScreen() {
   const [loadingDetail, setLoadingDetail] = useState(!item);
   const { rating, setRating, foodImages } =
     useRestaurantDetail(restaurantDetail);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuLoading, setMenuLoading] = useState(false);
+  const [menuDishes, setMenuDishes] = useState<any[]>([]);
   console.log('Reviews:', reviews);
 
   useEffect(() => {
@@ -54,6 +60,27 @@ export default function RestaurantDetailScreen() {
       }
     }
   }, [fromNotification, reviewId, reviews]);
+
+  // Hàm lấy danh sách món ăn khi mở modal
+  const fetchMenuDishes = async () => {
+    setMenuLoading(true);
+    try {
+      const data = await getDishesOfRestaurant(currentRestaurantId);
+      setMenuDishes(data);
+      console.log('Món ăn của nhà hàng:', data);
+    } catch (err) {
+      setMenuDishes([]);
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+
+  // Khi mở modal thì fetch menu
+  useEffect(() => {
+    if (menuVisible) {
+      fetchMenuDishes();
+    }
+  }, [menuVisible]);
 
   return (
     <ScrollView
@@ -152,6 +179,23 @@ export default function RestaurantDetailScreen() {
         accessibilityLabel="restaurant-info-section"
       >
         <RestaurantInfo address={restaurantDetail?.address} />
+        {/* Thêm nút Xem Menu */}
+        <TouchableOpacity
+          style={{
+            marginTop: 12,
+            backgroundColor: '#0C516F',
+            borderRadius: 8,
+            paddingVertical: 5,
+            alignItems: 'center',
+            alignSelf: 'flex-start',
+            paddingHorizontal: 10,
+          }}
+          onPress={() => setMenuVisible(true)}
+        >
+          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>
+            Xem Menu
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Review */}
@@ -202,6 +246,112 @@ export default function RestaurantDetailScreen() {
         )}
         scrollEnabled={false}
       />
+
+      {/* Modal hiển thị menu món ăn */}
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.2)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              padding: 20,
+              width: '90%',
+              maxHeight: '80%',
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 12,
+              }}
+            >
+              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
+                Menu món ăn
+              </Text>
+              <TouchableOpacity onPress={() => setMenuVisible(false)}>
+                <Text style={{ fontSize: 18, color: '#1E90FF' }}>Đóng</Text>
+              </TouchableOpacity>
+            </View>
+            {menuLoading ? (
+              <ActivityIndicator style={{ marginTop: 20 }} />
+            ) : (
+              <FlatList
+                data={menuDishes}
+                keyExtractor={item => item.dishId}
+                renderItem={({ item }) => (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingVertical: 10,
+                      borderBottomWidth: 0.5,
+                      borderColor: '#eee',
+                    }}
+                  >
+                    <Image
+                      source={
+                        item.images && item.images.length > 0
+                          ? { uri: item.images[0] }
+                          : require('../assets/food_placeholder.png')
+                      }
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 8,
+                        marginRight: 12,
+                        backgroundColor: '#eee',
+                      }}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontWeight: 'bold', fontSize: 15 }}>
+                        {item.name}
+                      </Text>
+                      <Text
+                        style={{
+                          color: '#1E90FF',
+                          fontWeight: 'bold',
+                          marginTop: 2,
+                        }}
+                      >
+                        {item.price?.toLocaleString('vi-VN', {
+                          style: 'currency',
+                          currency: 'VND',
+                        })}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                ListEmptyComponent={
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      color: '#888',
+                      marginTop: 20,
+                    }}
+                  >
+                    Chưa có món ăn nào.
+                  </Text>
+                }
+                style={{ marginBottom: 8 }}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }

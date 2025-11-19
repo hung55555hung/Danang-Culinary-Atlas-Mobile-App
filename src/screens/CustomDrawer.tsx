@@ -161,7 +161,7 @@ export default function CustomDrawer(props: any) {
         {role === 'vendor' && (
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => props.navigation.navigate('RegisterShop')}
+            onPress={() => props.navigation.navigate('AddShop')}
             testID="drawer-menu-register-shop"
             accessibilityLabel="drawer-menu-register-shop"
           >

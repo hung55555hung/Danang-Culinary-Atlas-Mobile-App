@@ -40,6 +40,7 @@ export default function SigninScreen() {
         fullName,
         roles,
         avatarUrl,
+        accountId,
       } = response.data.data;
       console.log('Đăng nhập thành công:', response.data);
 
@@ -47,6 +48,7 @@ export default function SigninScreen() {
       await AsyncStorage.setItem('userEmail', userEmail);
       await AsyncStorage.setItem('fullName', fullName);
       await AsyncStorage.setItem('avatarUrl', avatarUrl || '');
+      await AsyncStorage.setItem('accountID', accountId);
       const role =
         Array.isArray(roles) && roles.length > 0 ? roles[0].toLowerCase() : '';
       await AsyncStorage.setItem('roles', role);
