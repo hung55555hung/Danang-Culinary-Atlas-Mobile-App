@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import queryString from 'query-string';
-// import { resetPassword } from '../config/api'; // <--- Gọi API BE
+import { resetPassword } from '../api/apiConfig'; // <--- Gọi API BE
 
 export default function ResetPasswordScreen() {
   const navigation = useNavigation<any>();
@@ -34,6 +34,7 @@ export default function ResetPasswordScreen() {
       if (parsed.query.token) {
         setToken(parsed.query.token as string);
       }
+      console.log('token:', parsed.query.token);
     };
 
     const subscription = Linking.addEventListener('url', handleDeepLink);
@@ -54,7 +55,11 @@ export default function ResetPasswordScreen() {
 
     setLoading(true);
     try {
-      //   const res = await resetPassword({ token, newPassword: password });
+      const res = await resetPassword({
+        token,
+        newPassword: password,
+        confirmPassword: confirmPassword,
+      });
       Alert.alert('Thành công', 'Đặt lại mật khẩu thành công!', [
         { text: 'Đăng nhập', onPress: () => navigation.navigate('Login') },
       ]);

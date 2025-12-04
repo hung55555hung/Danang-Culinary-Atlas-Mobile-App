@@ -103,6 +103,34 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     textAlign: 'center',
   },
+  statusButton: {
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    marginTop: 8,
+    alignSelf: 'center',
+  },
+  statusButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  btnDelete: {
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#e74c3c',
+  },
+  btnEdit: {
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#1E90FF',
+  },
+  btnEditText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
 });
 
 export default styles;

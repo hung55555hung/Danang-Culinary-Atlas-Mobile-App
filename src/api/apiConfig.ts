@@ -1,6 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getRole } from '../utils/auth';
+import { rest } from 'lodash';
 
 const API = axios.create({
   baseURL: 'https://danangculinaryatlas.site/api/v1',
@@ -93,7 +94,7 @@ export const createRestaurant = async (data: {
   };
   images: { [key: string]: string };
 }) => {
-  return API.put('/restaurants', data);
+  return API.post('/restaurants', data);
 };
 
 export const createReview = async (data: {
@@ -162,6 +163,33 @@ export const createDish = async (data: {
 export const getDishesOfRestaurant = async (restaurantId: string) => {
   const res = await API.get(`/restaurants/${restaurantId}/dishes`);
   return res.data.content;
+};
+
+export const getRestaurantDetail = (restaurantId: string) => {
+  return API.get(`/restaurants/${restaurantId}`);
+};
+
+export const updateDish = async (
+  dishId: string,
+  data: {
+    name?: string;
+    images?: string[];
+    description?: string;
+    price?: number;
+    status?: string;
+  },
+) => {
+  console.log('Updating dish with data:', data);
+  const res = await API.put(`/dishes/${dishId}`, data);
+  return res.data;
+};
+
+export const resetPassword = async (data: {
+  token: string;
+  newPassword: string;
+  confirmPassword?: string;
+}) => {
+  return API.post('/auth/reset-password', data);
 };
 
 export default API;

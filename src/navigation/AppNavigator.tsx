@@ -19,6 +19,7 @@ import { LinkingOptions } from '@react-navigation/native';
 import AddShopScreen from '../screens/AddShopScreen';
 import VendorDishesScreen from '../screens/VendorDishesScreen';
 import AddDishScreen from '../screens/AddDishScreen';
+import EditDishScreen from '../screens/EditDishScreen';
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: ['atlasculinary://'],
   config: {
@@ -45,6 +46,7 @@ export type RootStackParamList = {
   AddShop: undefined;
   VendorDishes: undefined;
   AddDish: undefined;
+  EditDish: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -73,6 +75,7 @@ export default function AppNavigator() {
         <Stack.Screen name="AddShop" component={AddShopScreen} />
         <Stack.Screen name="VendorDishes" component={VendorDishesScreen} />
         <Stack.Screen name="AddDish" component={AddDishScreen} />
+        <Stack.Screen name="EditDish" component={EditDishScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

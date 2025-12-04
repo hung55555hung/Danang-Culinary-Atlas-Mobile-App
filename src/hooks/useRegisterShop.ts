@@ -134,7 +134,7 @@ export const useRegisterShop = () => {
       // ✅ Tạo images với value là string URL (không phải object)
       const imagesObject: { [key: string]: string } = {};
       uploadedUrls.forEach((url, index) => {
-        imagesObject[`photo_${index}`] = url; // ✅ Chỉ gửi URL string
+        imagesObject[`additionalProp${index}`] = url; // ✅ Chỉ gửi URL string
       });
 
       const payload = {

@@ -1,8 +1,9 @@
--đăng kí món ăn cho quán
+-đăng kí món ăn cho quán(done)
 -lọc quán ăn trên bản đồ
 -tìm kiếm
 -realtime notification
 -tối ưu render nhà hàng trên map
 -reply comment
 -report
--khi đăng kí món ăn thì món ăn sẽ hiển thị ở trang chi tiết nhà nhà
+-khi đăng kí món ăn thì món ăn sẽ hiển thị ở trang chi tiết nhà nhà(done)
+-Check lại status update Dish

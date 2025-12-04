@@ -41,6 +41,12 @@ const VendorDishesScreen = () => {
     }
   }, [restaurantId, isFocused]);
 
+  const handleEditDish = (dish: any) => {
+    navigation.navigate('EditDish', { dish });
+  };
+
+  const handleDeleteDish = async (dish: any) => {};
+
   const renderDish = ({ item }: { item: any }) => (
     <View style={styles.dishItem}>
       <View style={styles.dishImageBox}>
@@ -63,6 +69,22 @@ const VendorDishesScreen = () => {
       >
         {item.status === 'AVAILABLE' ? 'Đang bán' : 'Ngừng bán'}
       </Text>
+
+      {/* Thêm 2 nút Sửa/Xóa ở dưới mỗi dish */}
+      <View style={{ flexDirection: 'row', marginTop: 6, gap: 8 }}>
+        <TouchableOpacity
+          onPress={() => handleEditDish(item)}
+          style={styles.btnEdit}
+        >
+          <Text style={styles.btnEditText}>Sửa</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleDeleteDish(item)}
+          style={styles.btnDelete}
+        >
+          <Text style={styles.btnEditText}>Xóa</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
