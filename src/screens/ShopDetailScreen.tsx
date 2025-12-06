@@ -92,25 +92,26 @@ export default function RestaurantDetailScreen() {
       <View
         testID="shop-detail-header"
         accessibilityLabel="shop-detail-header"
-        style={{ flexDirection: 'row', alignItems: 'center' }}
+        style={styles.headerContainer}
       >
         <Text
           testID="restaurant-detail-name"
           accessibilityLabel="restaurant-detail-name"
           style={styles.title}
+          numberOfLines={2}
         >
           {restaurantDetail?.name}
         </Text>
         <TouchableOpacity
           testID="close-button"
           accessibilityLabel="close-button"
-          style={{ marginLeft: 'auto' }}
+          style={styles.closeButton}
           onPress={() => navigate.navigate('Drawer')}
         >
           <Image
             testID="close-icon"
             accessibilityLabel="close-icon"
-            style={{ width: 24, height: 24, marginLeft: 'auto', marginTop: 20 }}
+            style={styles.closeIcon}
             source={require('../assets/close.png')}
           />
         </TouchableOpacity>

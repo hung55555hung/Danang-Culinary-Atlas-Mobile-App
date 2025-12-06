@@ -2,7 +2,25 @@ import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', padding: 15 },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 5, marginTop: 20 },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    flex: 1,
+    marginRight: 10,
+  },
+  closeButton: {
+    padding: 5,
+  },
+  closeIcon: {
+    width: 24,
+    height: 24,
+  },
   row: { flexDirection: 'row', alignItems: 'center', marginBottom: 5 },
   ratingNumber: { fontSize: 18, fontWeight: 'bold', marginRight: 5 },
   category: { fontSize: 16, color: 'gray', marginBottom: 10 },
