@@ -4,7 +4,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', padding: 15 },
   headerContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginTop: 20,
   },
   title: {
@@ -51,6 +51,20 @@ const styles = StyleSheet.create({
   },
 
   reviewItem: { marginBottom: 10 },
+  reviewContainer: {
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  reviewSeparator: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+    marginVertical: 8,
+  },
+  reviewListContent: {
+    paddingBottom: 30,
+  },
   avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
   reviewHeader: { flexDirection: 'row', justifyContent: 'space-between' },
   reviewerName: { fontWeight: 'bold', fontSize: 14 },
@@ -62,7 +76,7 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: 8,
     marginTop: 5,
-    marginBottom: 30,
+    marginBottom: 15,
   },
   foodImageCarousel: {
     width: 160,

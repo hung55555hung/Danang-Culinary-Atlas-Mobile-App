@@ -155,4 +155,41 @@ export default StyleSheet.create({
   submitButtonDisabled: {
     opacity: 0.5,
   },
+  openingHourRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 8,
+  },
+  openingHourInput: {
+    flex: 1,
+    marginBottom: 0,
+  },
+  removeHourButton: {
+    backgroundColor: '#ff4444',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeHourText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  addHourButton: {
+    borderWidth: 1,
+    borderColor: '#115e73',
+    borderRadius: 6,
+    borderStyle: 'dashed',
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  addHourText: {
+    color: '#115e73',
+    fontSize: 15,
+    fontWeight: '500',
+  },
 });

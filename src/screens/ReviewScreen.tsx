@@ -14,12 +14,15 @@ import RatingStars from '../components/RatingStars';
 import styles from '../styles/ReviewStyles';
 import { getUserFullName } from '../utils/auth';
 import { useImagePicker } from '../hooks/useImagePicker';
-import { useRoute } from '@react-navigation/core';
+import { useRoute, useNavigation } from '@react-navigation/core';
 import { useCreateReview } from '../hooks/useCreateReview';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ReviewScreen: React.FC = () => {
   const [fullName, setFullName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
   const { restaurantId } = route.params;
   const { handleSubmit, rating, setRating, comment, setComment, uploading } =
     useCreateReview(restaurantId);
@@ -36,7 +39,9 @@ const ReviewScreen: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       const userFullName = await getUserFullName();
+      const avatar = await AsyncStorage.getItem('avatarUrl');
       setFullName(userFullName || '');
+      setAvatarUrl(avatar || '');
     };
     fetchUserData();
   }, []);
@@ -65,13 +70,28 @@ const ReviewScreen: React.FC = () => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
-      <Text style={styles.title}>Mỳ quán bếp Trang</Text>
+      {/* Header với button close */}
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Image
+            source={require('../assets/close.png')}
+            style={styles.closeIcon}
+          />
+        </TouchableOpacity>
+        <Text style={styles.title}>Viết đánh giá</Text>
+      </View>
 
       {/* User info */}
       <View style={styles.userRow}>
         <Image
-          source={{ uri: 'https://i.pravatar.cc/100' }}
+          source={
+            avatarUrl
+              ? { uri: avatarUrl }
+              : require('../assets/avt_default.jpg')
+          }
           style={styles.avatar}
         />
         <View style={{ marginLeft: 10 }}>

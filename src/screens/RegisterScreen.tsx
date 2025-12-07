@@ -9,7 +9,6 @@ import {
   Modal,
   FlatList,
   ScrollView,
-  KeyboardAvoidingView,
 } from 'react-native';
 import styles from '../styles/SigninStyles';
 import { registerAccount } from '../api/apiConfig';
@@ -22,6 +21,8 @@ export default function RegisterScreen({ navigation }: any) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('USER');
   const [modalVisible, setModalVisible] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Danh sách role cho chọn
   const roles = [
@@ -71,8 +72,12 @@ export default function RegisterScreen({ navigation }: any) {
   return (
     <>
       <StatusBar hidden={true} animated={true} />
-      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
           {/* Header */}
           <Header title="Đăng ký" showBack={true} />
           <View style={styles.body}>
@@ -97,28 +102,58 @@ export default function RegisterScreen({ navigation }: any) {
             />
 
             {/* Input Password */}
-            <TextInput
-              testID="input-password"
-              accessibilityLabel="input-password"
-              placeholder="Mật khẩu"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              style={styles.input}
-              placeholderTextColor="#666"
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                testID="input-password"
+                accessibilityLabel="input-password"
+                placeholder="Mật khẩu"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                style={styles.passwordInput}
+                placeholderTextColor="#666"
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Image
+                  source={
+                    showPassword
+                      ? require('../assets/show.png')
+                      : require('../assets/hide.png')
+                  }
+                  style={styles.eyeIcon}
+                />
+              </TouchableOpacity>
+            </View>
 
             {/* Input Confirm Password */}
-            <TextInput
-              testID="input-confirm-password"
-              accessibilityLabel="input-confirm-password"
-              placeholder="Xác nhận mật khẩu"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              style={styles.input}
-              placeholderTextColor="#666"
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                testID="input-confirm-password"
+                accessibilityLabel="input-confirm-password"
+                placeholder="Xác nhận mật khẩu"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                style={styles.passwordInput}
+                placeholderTextColor="#666"
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                <Image
+                  source={
+                    showConfirmPassword
+                      ? require('../assets/show.png')
+                      : require('../assets/hide.png')
+                  }
+                  style={styles.eyeIcon}
+                />
+              </TouchableOpacity>
+            </View>
 
             {/* Dropdown chọn Role */}
             <TouchableOpacity
@@ -156,74 +191,72 @@ export default function RegisterScreen({ navigation }: any) {
             >
               <Text style={styles.loginText}>Đăng ký</Text>
             </TouchableOpacity>
+          </View>
 
-            {/* Modal chọn Role */}
-            <Modal visible={modalVisible} animationType="slide" transparent>
+          {/* Modal chọn Role */}
+          <Modal visible={modalVisible} animationType="slide" transparent>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: 'rgba(0,0,0,0.3)',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
               <View
                 style={{
-                  flex: 1,
-                  backgroundColor: 'rgba(0,0,0,0.3)',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                  backgroundColor: 'white',
+                  width: '80%',
+                  borderRadius: 10,
+                  paddingVertical: 10,
                 }}
               >
-                <View
+                <Text
                   style={{
-                    backgroundColor: 'white',
-                    width: '80%',
-                    borderRadius: 10,
-                    paddingVertical: 10,
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    fontSize: 18,
+                    marginBottom: 10,
                   }}
                 >
-                  <Text
-                    style={{
-                      textAlign: 'center',
-                      fontWeight: 'bold',
-                      fontSize: 18,
-                      marginBottom: 10,
-                    }}
-                  >
-                    Chọn vai trò
-                  </Text>
+                  Chọn vai trò
+                </Text>
 
-                  <FlatList
-                    data={roles}
-                    keyExtractor={item => item.value}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        testID={`role-${item.value}`}
-                        accessibilityLabel={`role-${item.value}`}
-                        onPress={() => {
-                          setRole(item.value);
-                          setModalVisible(false);
-                        }}
-                        style={{
-                          paddingVertical: 12,
-                          borderBottomWidth: 1,
-                          borderColor: '#eee',
-                        }}
-                      >
-                        <Text style={{ textAlign: 'center', fontSize: 16 }}>
-                          {item.label}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  />
+                <FlatList
+                  data={roles}
+                  keyExtractor={item => item.value}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      testID={`role-${item.value}`}
+                      accessibilityLabel={`role-${item.value}`}
+                      onPress={() => {
+                        setRole(item.value);
+                        setModalVisible(false);
+                      }}
+                      style={{
+                        paddingVertical: 12,
+                        borderBottomWidth: 1,
+                        borderColor: '#eee',
+                      }}
+                    >
+                      <Text style={{ textAlign: 'center', fontSize: 16 }}>
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
 
-                  <TouchableOpacity
-                    onPress={() => setModalVisible(false)}
-                    style={{ padding: 12 }}
-                  >
-                    <Text style={{ textAlign: 'center', color: 'red' }}>
-                      Hủy
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  onPress={() => setModalVisible(false)}
+                  style={{ padding: 12 }}
+                >
+                  <Text style={{ textAlign: 'center', color: 'red' }}>Hủy</Text>
+                </TouchableOpacity>
               </View>
-            </Modal>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+            </View>
+          </Modal>
+        </View>
+      </ScrollView>
     </>
   );
 }

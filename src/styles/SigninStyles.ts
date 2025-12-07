@@ -1,6 +1,10 @@
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 50,
+  },
   container: {
     flex: 1,
     backgroundColor: '#63C7C6',
@@ -40,6 +44,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     fontSize: 16,
     marginBottom: 15,
+  },
+  passwordContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginBottom: 15,
+    paddingRight: 10,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    fontSize: 16,
+    backgroundColor: 'transparent',
+  },
+  eyeButton: {
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eyeIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#666',
   },
   forgotPasswordWrapper: {
     width: '100%', // để full chiều ngang

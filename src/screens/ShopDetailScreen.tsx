@@ -241,11 +241,14 @@ export default function RestaurantDetailScreen() {
           <View
             testID={`review-item-${index}`}
             accessibilityLabel={`review-item-${index}`}
+            style={styles.reviewContainer}
           >
             <ReviewItem item={item} />
           </View>
         )}
+        ItemSeparatorComponent={() => <View style={styles.reviewSeparator} />}
         scrollEnabled={false}
+        contentContainerStyle={styles.reviewListContent}
       />
 
       {/* Modal hiển thị menu món ăn */}

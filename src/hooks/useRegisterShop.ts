@@ -86,7 +86,9 @@ export const useRegisterShop = () => {
 
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
-  const [openingHours, setOpeningHours] = useState('');
+  const [openingHours, setOpeningHours] = useState<{ [key: string]: string }>({
+    'Thứ 2 - Thứ 6': '08:00 - 22:00',
+  });
   const [wardId, setWardId] = useState<any>(null);
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
@@ -113,6 +115,30 @@ export const useRegisterShop = () => {
       setLongitude(route.params.location.longitude);
     }
   }, [route.params]);
+
+  const addOpeningHour = () => {
+    const newKey = `day${Object.keys(openingHours).length + 1}`;
+    setOpeningHours(prev => ({ ...prev, [newKey]: '' }));
+  };
+
+  const removeOpeningHour = (key: string) => {
+    setOpeningHours(prev => {
+      const updated = { ...prev };
+      delete updated[key];
+      return updated;
+    });
+  };
+
+  const updateOpeningHour = (oldKey: string, newKey: string, value: string) => {
+    setOpeningHours(prev => {
+      const updated = { ...prev };
+      if (oldKey !== newKey) {
+        delete updated[oldKey];
+      }
+      updated[newKey] = value;
+      return updated;
+    });
+  };
 
   const handleSubmit = async () => {
     if (!name || !address || !wardId || !latitude || !longitude) {
@@ -144,10 +170,7 @@ export const useRegisterShop = () => {
         latitude: latitude as number, // ✅ Gửi number trực tiếp
         longitude: longitude as number, // ✅ Gửi number trực tiếp
         tagIds: selectedTags,
-        openingHours: {
-          key_0: openingHours || '08:00 - 22:00',
-          key_1: 'Cả tuần',
-        },
+        openingHours: openingHours, // ✅ Gửi object openingHours trực tiếp
         images: imagesObject, // ✅ Map<String, String>
       };
 
@@ -188,7 +211,9 @@ export const useRegisterShop = () => {
     address,
     setAddress,
     openingHours,
-    setOpeningHours,
+    addOpeningHour,
+    removeOpeningHour,
+    updateOpeningHour,
     wardId,
     setWardId,
     latitude,

@@ -26,7 +26,9 @@ export default function RegisterShopScreen() {
     address,
     setAddress,
     openingHours,
-    setOpeningHours,
+    addOpeningHour,
+    removeOpeningHour,
+    updateOpeningHour,
     wardId,
     setWardId,
     latitude,
@@ -136,15 +138,49 @@ export default function RegisterShopScreen() {
           testID="input-address"
           accessibilityLabel="input-address"
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Giờ hoạt động (VD: 08:00 - 22:00)"
-          placeholderTextColor="#555"
-          value={openingHours}
-          onChangeText={setOpeningHours}
-          testID="input-hours"
-          accessibilityLabel="input-hours"
-        />
+
+        {/* Giờ hoạt động */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Giờ hoạt động *</Text>
+          {Object.entries(openingHours).map(([key, value], index) => (
+            <View key={key} style={styles.openingHourRow}>
+              <TextInput
+                style={[styles.input, styles.openingHourInput]}
+                placeholder="Ngày (VD: Thứ 2-6)"
+                placeholderTextColor="#555"
+                value={key}
+                onChangeText={newKey => updateOpeningHour(key, newKey, value)}
+                testID={`input-day-${index}`}
+                accessibilityLabel={`input-day-${index}`}
+              />
+              <TextInput
+                style={[styles.input, styles.openingHourInput]}
+                placeholder="Giờ (VD: 08:00 - 22:00)"
+                placeholderTextColor="#555"
+                value={value}
+                onChangeText={newValue => updateOpeningHour(key, key, newValue)}
+                testID={`input-time-${index}`}
+                accessibilityLabel={`input-time-${index}`}
+              />
+              <TouchableOpacity
+                style={styles.removeHourButton}
+                onPress={() => removeOpeningHour(key)}
+                testID={`btn-remove-hour-${index}`}
+                accessibilityLabel={`btn-remove-hour-${index}`}
+              >
+                <Text style={styles.removeHourText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          <TouchableOpacity
+            style={styles.addHourButton}
+            onPress={addOpeningHour}
+            testID="btn-add-hour"
+            accessibilityLabel="btn-add-hour"
+          >
+            <Text style={styles.addHourText}>＋ Thêm giờ hoạt động</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Nút chọn vị trí */}
         <TouchableOpacity

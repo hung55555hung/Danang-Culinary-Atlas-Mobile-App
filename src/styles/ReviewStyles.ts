@@ -6,11 +6,26 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
   },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    marginTop: 10,
+  },
+  closeButton: {
+    padding: 5,
+    marginRight: 15,
+  },
+  closeIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#333',
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 16,
     color: '#333',
+    flex: 1,
   },
   userRow: {
     flexDirection: 'row',
