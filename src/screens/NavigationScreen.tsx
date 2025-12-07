@@ -46,7 +46,8 @@ export default function NavigationScreen() {
   const [eta, setEta] = useState<string>('');
   const cameraRef = useRef<Camera>(null);
   const watchId = useRef<number | null>(null);
-  const slideAnim = useRef(new Animated.Value(-300)).current;
+  const panelHeight = Platform.OS === 'ios' ? 350 : 320;
+  const slideAnim = useRef(new Animated.Value(panelHeight)).current;
 
   // 🔹 Xin quyền vị trí
   const requestLocationPermission = async () => {
@@ -104,7 +105,7 @@ export default function NavigationScreen() {
       };
       
       const profile = profileMap[mode];
-      const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&steps=true&banner_instructions=true&voice_instructions=true&annotations=distance,duration,speed,congestion&overview=full&access_token=${Config.MAPBOX_ACCESS_TOKEN}`;
+      const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&steps=true&banner_instructions=true&voice_instructions=true&annotations=distance,duration,speed,congestion&overview=full&language=vi&access_token=${Config.MAPBOX_ACCESS_TOKEN}`;
       
       console.log('🔍 Đang gọi Directions API với chế độ:', mode);
       const response = await fetch(url);
@@ -230,12 +231,11 @@ export default function NavigationScreen() {
 
   // 🔹 Animation cho instructions panel
   const toggleInstructions = () => {
-    const toValue = showInstructions ? -300 : 0;
-    Animated.spring(slideAnim, {
+    const toValue = showInstructions ? panelHeight : 0;
+    Animated.timing(slideAnim, {
       toValue,
+      duration: 300,
       useNativeDriver: true,
-      tension: 50,
-      friction: 8,
     }).start();
     setShowInstructions(!showInstructions);
   };
@@ -479,14 +479,14 @@ export default function NavigationScreen() {
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 11, color: '#1976D2', fontWeight: '600', marginBottom: 2 }}>
-                Bước tiếp theo:
+              <Text style={{ fontSize: 10, color: '#1976D2', fontWeight: '600', marginBottom: 2 }}>
+                Tiếp theo:
               </Text>
-              <Text style={{ fontSize: 13, color: '#333', fontWeight: '500' }} numberOfLines={2}>
+              <Text style={{ fontSize: 12, color: '#333', fontWeight: '500' }} numberOfLines={2}>
                 {instructions[currentStepIndex]}
               </Text>
             </View>
-            <Text style={{ fontSize: 16, marginLeft: 8 }}>{showInstructions ? '▼' : '▶'}</Text>
+            <Text style={{ fontSize: 18, marginLeft: 8, color: '#1976D2' }}>{showInstructions ? '▼' : '▲'}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -498,7 +498,7 @@ export default function NavigationScreen() {
           bottom: 0,
           left: 0,
           right: 0,
-          height: 300,
+          height: panelHeight,
           backgroundColor: '#fff',
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
@@ -510,38 +510,44 @@ export default function NavigationScreen() {
           transform: [{ translateY: slideAnim }],
         }}
       >
-        <View style={{ padding: 16, borderBottomWidth: 1, borderColor: '#eee', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>Hướng dẫn chi tiết</Text>
-          <TouchableOpacity onPress={toggleInstructions}>
+        {/* Drag Handle */}
+        <View style={{ alignItems: 'center', paddingVertical: 8 }}>
+          <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#ddd' }} />
+        </View>
+        
+        <View style={{ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderColor: '#eee', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#333' }}>Hướng dẫn chi tiết</Text>
+          <TouchableOpacity onPress={toggleInstructions} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Text style={{ fontSize: 20, color: '#666' }}>✕</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView style={{ flex: 1, padding: 16 }}>
+        <ScrollView style={{ flex: 1, paddingHorizontal: 16 }} showsVerticalScrollIndicator={false}>
           {instructions.map((instruction, index) => (
             <View 
               key={index}
               style={{
                 flexDirection: 'row',
-                marginBottom: 16,
-                paddingBottom: 16,
+                marginBottom: 12,
+                paddingBottom: 12,
                 borderBottomWidth: index < instructions.length - 1 ? 1 : 0,
                 borderColor: '#f0f0f0',
               }}
             >
               <View 
                 style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 15,
+                  width: 26,
+                  height: 26,
+                  borderRadius: 13,
                   backgroundColor: index === currentStepIndex ? '#2196F3' : '#e0e0e0',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  marginRight: 12,
+                  marginRight: 10,
+                  marginTop: 2,
                 }}
               >
-                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>{index + 1}</Text>
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 11 }}>{index + 1}</Text>
               </View>
-              <Text style={{ flex: 1, fontSize: 14, color: '#333', lineHeight: 20 }}>{instruction}</Text>
+              <Text style={{ flex: 1, fontSize: 13, color: '#333', lineHeight: 18 }}>{instruction}</Text>
             </View>
           ))}
         </ScrollView>
