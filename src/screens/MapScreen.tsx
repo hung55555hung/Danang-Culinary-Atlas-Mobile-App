@@ -9,8 +9,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  PermissionsAndroid,
+  Alert,
 } from 'react-native';
-import Mapbox, { MapView, Camera, ShapeSource, SymbolLayer, MarkerView } from '@rnmapbox/maps';
+import Mapbox, { MapView, Camera, ShapeSource, SymbolLayer, MarkerView, LocationPuck } from '@rnmapbox/maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
@@ -18,6 +20,7 @@ import styles from '../styles/MapStyles';
 import { getRestaurants, getRestaurantDetail } from '../api/apiConfig';
 import { useFocusEffect } from '@react-navigation/native';
 import debounce from 'lodash/debounce';
+import Geolocation from '@react-native-community/geolocation';
 
 interface Restaurant {
   restaurantId: string;
@@ -41,6 +44,8 @@ const MapScreen: React.FC = () => {
   const [currentZoom, setCurrentZoom] = useState<number>(12);
   const [searchText, setSearchText] = useState('');
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>([]);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [locationPermission, setLocationPermission] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -85,7 +90,60 @@ const MapScreen: React.FC = () => {
     [],
   );
 
-  // 🔹 Gọi API lần đầu khi mở map
+  // 🔹 Xin quyền truy cập vị trí
+  const requestLocationPermission = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Quyền truy cập vị trí',
+            message: 'Ứng dụng cần quyền truy cập vị trí để hiển thị vị trí hiện tại và chỉ đường',
+            buttonNeutral: 'Hỏi lại sau',
+            buttonNegative: 'Từ chối',
+            buttonPositive: 'Đồng ý',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          setLocationPermission(true);
+          getCurrentLocation();
+        } else {
+          Alert.alert('Quyền bị từ chối', 'Không thể hiển thị vị trí hiện tại');
+        }
+      } else {
+        // iOS - quyền sẽ được xin tự động khi gọi Geolocation
+        setLocationPermission(true);
+        getCurrentLocation();
+      }
+    } catch (err) {
+      console.error('❌ Lỗi xin quyền vị trí:', err);
+    }
+  };
+
+  // 🔹 Lấy vị trí hiện tại
+  const getCurrentLocation = () => {
+    Geolocation.getCurrentPosition(
+      (position) => {
+        const { longitude, latitude } = position.coords;
+        console.log('📍 Vị trí hiện tại:', latitude, longitude);
+        setUserLocation([longitude, latitude]);
+        
+        // Di chuyển camera đến vị trí hiện tại
+        cameraRef.current?.setCamera({
+          centerCoordinate: [longitude, latitude],
+          zoomLevel: 14,
+          animationDuration: 1000,
+        });
+      },
+      (error) => {
+        console.error('❌ Lỗi lấy vị trí:', error);
+        Alert.alert('Lỗi', 'Không thể lấy vị trí hiện tại. Vui lòng kiểm tra GPS.');
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  };
+
+  // 🔹 Gọi API lần đầu khi mở map + xin quyền vị trí
   useEffect(() => {
     (async () => {
       try {
@@ -109,6 +167,9 @@ const MapScreen: React.FC = () => {
 
         console.log('✅ Nhà hàng hợp lệ:', validRestaurants.length);
         setRestaurants(validRestaurants);
+        
+        // Xin quyền vị trí
+        requestLocationPermission();
       } catch (err) {
         console.error('❌ Lỗi khi tải danh sách ban đầu:', err);
       } finally {
@@ -216,6 +277,19 @@ const MapScreen: React.FC = () => {
             minZoomLevel={10}
             maxZoomLevel={20}
           />
+
+          {/* 📍 Hiển thị vị trí hiện tại của người dùng */}
+          {locationPermission && userLocation && (
+            <LocationPuck
+              puckBearingEnabled
+              puckBearing="heading"
+              pulsing={{
+                isEnabled: true,
+                color: '#4285F4',
+                radius: 100,
+              }}
+            />
+          )}
 
           {/* 🗺️ Markers - Hiển thị nhà hàng trên bản đồ với ảnh nhỏ */}
           {restaurants.slice(0, 50).map((restaurant) => (
@@ -366,6 +440,18 @@ const MapScreen: React.FC = () => {
               ))
             )}
           </View>
+        )}
+
+        {/* 📍 Nút định vị lại vị trí hiện tại */}
+        {locationPermission && userLocation && (
+          <TouchableOpacity
+            style={styles.locationButton}
+            onPress={getCurrentLocation}
+            testID="location-button"
+            accessibilityLabel="Về vị trí hiện tại"
+          >
+            <Text style={styles.locationButtonText}>📍</Text>
+          </TouchableOpacity>
         )}
       </View>
     </KeyboardAvoidingView>

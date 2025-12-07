@@ -180,23 +180,50 @@ export default function RestaurantDetailScreen() {
         accessibilityLabel="restaurant-info-section"
       >
         <RestaurantInfo address={restaurantDetail?.address} />
-        {/* Thêm nút Xem Menu */}
-        <TouchableOpacity
-          style={{
-            marginTop: 12,
-            backgroundColor: '#0C516F',
-            borderRadius: 8,
-            paddingVertical: 5,
-            alignItems: 'center',
-            alignSelf: 'flex-start',
-            paddingHorizontal: 10,
-          }}
-          onPress={() => setMenuVisible(true)}
-        >
-          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>
-            Xem Menu
-          </Text>
-        </TouchableOpacity>
+        {/* Thêm nút Xem Menu và Đường đi */}
+        <View style={{ flexDirection: 'row', marginTop: 12, gap: 10 }}>
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#0C516F',
+              borderRadius: 8,
+              paddingVertical: 5,
+              alignItems: 'center',
+              paddingHorizontal: 10,
+            }}
+            onPress={() => setMenuVisible(true)}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>
+              Xem Menu
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#FF5722',
+              borderRadius: 8,
+              paddingVertical: 5,
+              alignItems: 'center',
+              paddingHorizontal: 10,
+            }}
+            onPress={() => {
+              if (restaurantDetail?.latitude && restaurantDetail?.longitude) {
+                navigate.navigate('Navigation', {
+                  destinationName: restaurantDetail.name,
+                  destinationCoords: [
+                    restaurantDetail.longitude,
+                    restaurantDetail.latitude,
+                  ],
+                });
+              }
+            }}
+            testID="directions-button"
+            accessibilityLabel="directions-button"
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>
+              Đường đi
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Review */}

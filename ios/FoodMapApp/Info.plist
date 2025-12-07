@@ -32,7 +32,9 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Show your location on the map to find nearby restaurants</string>
+	<string>Ứng dụng cần quyền truy cập vị trí để hiển thị vị trí hiện tại và chỉ đường đến nhà hàng</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Ứng dụng cần quyền truy cập vị trí để chỉ đường đến nhà hàng</string>
 	<key>MBXAccessToken</key>
 	<string>$(MAPBOX_ACCESS_TOKEN)</string>
 	<key>RCTNewArchEnabled</key>
