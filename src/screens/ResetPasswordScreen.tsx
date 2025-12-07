@@ -9,6 +9,9 @@ import {
   Image,
   StyleSheet,
   Linking,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import queryString from 'query-string';
@@ -75,9 +78,19 @@ export default function ResetPasswordScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.headerContainer}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -131,7 +144,9 @@ export default function ResetPasswordScreen() {
           <Text style={styles.buttonText}>Xác nhận</Text>
         )}
       </TouchableOpacity>
-    </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

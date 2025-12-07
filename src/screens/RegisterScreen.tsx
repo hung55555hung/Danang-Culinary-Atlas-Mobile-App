@@ -10,6 +10,7 @@ import {
   FlatList,
   ScrollView,
   KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import styles from '../styles/SigninStyles';
 import { registerAccount } from '../api/apiConfig';
@@ -71,8 +72,16 @@ export default function RegisterScreen({ navigation }: any) {
   return (
     <>
       <StatusBar hidden={true} animated={true} />
-      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.container}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
+        <ScrollView 
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {/* Header */}
           <Header title="Đăng ký" showBack={true} />
           <View style={styles.body}>

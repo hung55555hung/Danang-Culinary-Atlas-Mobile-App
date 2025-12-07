@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Text,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -190,20 +192,25 @@ const MapScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <MapView
-        key={mapKey}
-        testID="MapView"
-        accessibilityLabel="MapView"
-        style={StyleSheet.absoluteFillObject}
-        initialRegion={{
-          latitude: 16.05009,
-          longitude: 108.22302,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-        onRegionChangeComplete={handleRegionChange}
-      >
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={0}
+    >
+      <View style={styles.container}>
+        <MapView
+          key={mapKey}
+          testID="MapView"
+          accessibilityLabel="MapView"
+          style={StyleSheet.absoluteFillObject}
+          initialRegion={{
+            latitude: 16.05009,
+            longitude: 108.22302,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          }}
+          onRegionChangeComplete={handleRegionChange}
+        >
         {restaurants
           .filter(item => isMarkerVisible(item, visibleRegion))
           .slice(0, 20) // 👈 Giới hạn tối đa 50 marker
@@ -358,7 +365,8 @@ const MapScreen: React.FC = () => {
           )}
         </View>
       )}
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 

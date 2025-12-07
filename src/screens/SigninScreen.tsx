@@ -7,6 +7,9 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from 'react-native';
 import styles from '../styles/SigninStyles';
 import { useNavigation } from '@react-navigation/native';
@@ -68,7 +71,17 @@ export default function SigninScreen() {
   return (
     <>
       <StatusBar hidden={true} animated={true} />
-      <View style={styles.container}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
+        <ScrollView 
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.container}>
         {/* Header */}
         <Header title="Đăng nhập" showBack={true} />
         <View style={styles.body}>
@@ -129,6 +142,8 @@ export default function SigninScreen() {
           </TouchableOpacity>
         </View>
       </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </>
   );
 }

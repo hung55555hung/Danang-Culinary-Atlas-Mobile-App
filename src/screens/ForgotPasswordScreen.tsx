@@ -8,6 +8,9 @@ import {
   Alert,
   Image,
   StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from 'react-native';
 import { requestPasswordReset } from '../api/apiConfig';
 import { useNavigation } from '@react-navigation/native';
@@ -46,9 +49,19 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.headerContainer}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -96,7 +109,9 @@ export default function ForgotPasswordScreen() {
           <Text style={styles.buttonText}>Gửi yêu cầu</Text>
         )}
       </TouchableOpacity>
-    </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
