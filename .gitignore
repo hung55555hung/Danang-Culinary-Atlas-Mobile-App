@@ -76,3 +76,6 @@ yarn-error.log
 
 .env
 .github/copilot-instructions.md
+
+# Mapbox secret tokens
+android/gradle.properties

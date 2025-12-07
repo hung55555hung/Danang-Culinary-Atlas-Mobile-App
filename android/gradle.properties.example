@@ -45,9 +45,11 @@ edgeToEdgeEnabled=false
 
 MYAPP_UPLOAD_STORE_FILE=foodmap-key.keystore
 MYAPP_UPLOAD_KEY_ALIAS=foodmap-key
-MYAPP_UPLOAD_STORE_PASSWORD=21012004
-MYAPP_UPLOAD_KEY_PASSWORD=21012004
+MYAPP_UPLOAD_STORE_PASSWORD=YOUR_PASSWORD_HERE
+MYAPP_UPLOAD_KEY_PASSWORD=YOUR_PASSWORD_HERE
 
-# 🗺️ Mapbox Access Token - Đọc từ .env file (KHÔNG commit token vào đây!)
-# Nếu cần set manual, uncomment dòng dưới và thay YOUR_TOKEN
-# MAPBOX_ACCESS_TOKEN=YOUR_PUBLIC_TOKEN_HERE
+# Mapbox Downloads Token (Secret token for downloading SDK)
+# Get from: https://account.mapbox.com/access-tokens/
+# Create a new token with "DOWNLOADS:READ" scope
+# IMPORTANT: This is a SECRET token (starts with sk.), keep it private!
+MAPBOX_DOWNLOADS_TOKEN=sk.YOUR_SECRET_DOWNLOADS_TOKEN_HERE
