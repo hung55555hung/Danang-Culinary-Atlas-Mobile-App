@@ -30,9 +30,11 @@
       </intent-filter>
 
     </activity>
+    
+    <!-- 🗺️ Mapbox Access Token -->
     <meta-data
-      android:name="com.google.android.geo.API_KEY"
-      android:value="AIzaSyDSxJc-mTAGdJYQ8XE7DUXSNrUv4qbq0NI" />
+      android:name="MAPBOX_ACCESS_TOKEN"
+      android:value="${MAPBOX_ACCESS_TOKEN}" />
 
   </application>
 </manifest>

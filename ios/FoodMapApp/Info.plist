@@ -32,7 +32,9 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Show your location on the map to find nearby restaurants</string>
+	<key>MBXAccessToken</key>
+	<string>$(MAPBOX_ACCESS_TOKEN)</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

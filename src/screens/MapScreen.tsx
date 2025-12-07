@@ -1,16 +1,16 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   TextInput,
   TouchableOpacity,
   Image,
-  StyleSheet,
   Text,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from 'react-native';
-import MapView, { Marker, Callout } from 'react-native-maps';
+import Mapbox, { MapView, Camera, ShapeSource, SymbolLayer, MarkerView } from '@rnmapbox/maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
@@ -31,17 +31,16 @@ interface Restaurant {
 const MapScreen: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<any>>();
   const stackNav = useNavigation<any>();
+  const mapRef = useRef<MapView>(null);
+  const cameraRef = useRef<Camera>(null);
+  
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentZoom, setCurrentZoom] = useState<number | null>(null);
-  const [mapKey, setMapKey] = useState(0);
+  const [currentZoom, setCurrentZoom] = useState<number>(12);
   const [searchText, setSearchText] = useState('');
-  const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(
-    [],
-  );
-  const [visibleRegion, setVisibleRegion] = useState<any>(null);
+  const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -55,12 +54,6 @@ const MapScreen: React.FC = () => {
     }, []),
   );
 
-  // Hàm tính zoomLevel từ region
-  const getZoomLevel = (region: any) => {
-    const { longitudeDelta } = region;
-    return Math.round(Math.log2(360 / longitudeDelta));
-  };
-
   // 🔹 Hàm gọi API khi zoom thay đổi (có debounce)
   const fetchRestaurantsByZoom = useCallback(
     debounce(async (zoomLevel: number) => {
@@ -68,7 +61,7 @@ const MapScreen: React.FC = () => {
       try {
         const res = await getRestaurants(Math.floor(zoomLevel * 0.8));
         console.log('📍 Danh sách nhà hàng:', res.data?.length);
-        console.log(res.data);
+        
         // Lọc nhà hàng có tọa độ hợp lệ
         const validRestaurants = (res.data || []).filter((item: Restaurant) => {
           const isValid =
@@ -85,26 +78,11 @@ const MapScreen: React.FC = () => {
 
         console.log('✅ Nhà hàng hợp lệ:', validRestaurants.length);
         setRestaurants(validRestaurants);
-        // ❌ BỎ dòng này: setMapKey(prev => prev + 1);
       } catch (err) {
         console.error('❌ Lỗi khi tải danh sách nhà hàng:', err);
       }
     }, 800),
     [],
-  );
-
-  // 🔹 Xử lý khi zoom/di chuyển bản đồ
-  const handleRegionChange = useCallback(
-    (region: any) => {
-      setVisibleRegion(region);
-      const zoomLevel = getZoomLevel(region);
-      if (currentZoom === null) return; // Không gọi API nếu lần đầu
-      if (Math.abs(zoomLevel - currentZoom) >= 1) {
-        setCurrentZoom(zoomLevel);
-        fetchRestaurantsByZoom(zoomLevel);
-      }
-    },
-    [currentZoom, fetchRestaurantsByZoom],
   );
 
   // 🔹 Gọi API lần đầu khi mở map
@@ -131,8 +109,6 @@ const MapScreen: React.FC = () => {
 
         console.log('✅ Nhà hàng hợp lệ:', validRestaurants.length);
         setRestaurants(validRestaurants);
-        setCurrentZoom(5);
-        setMapKey(prev => prev + 1); // ✅ Chỉ set một lần khi load đầu tiên
       } catch (err) {
         console.error('❌ Lỗi khi tải danh sách ban đầu:', err);
       } finally {
@@ -140,11 +116,6 @@ const MapScreen: React.FC = () => {
       }
     })();
   }, []);
-
-  // Debug: Log khi restaurants thay đổi
-  useEffect(() => {
-    console.log('🔄 Restaurants state updated:', restaurants.length);
-  }, [restaurants]);
 
   const handleAvatarPress = () => {
     if (isLoggedIn) {
@@ -167,6 +138,38 @@ const MapScreen: React.FC = () => {
     }
   }, [searchText, restaurants]);
 
+  // Convert restaurants to GeoJSON
+  const restaurantsGeoJSON = {
+    type: 'FeatureCollection',
+    features: restaurants.map(item => ({
+      type: 'Feature',
+      id: item.restaurantId,
+      geometry: {
+        type: 'Point',
+        coordinates: [item.longitude, item.latitude],
+      },
+      properties: {
+        name: item.name,
+        address: item.address,
+        photo: item.photo,
+        restaurantId: item.restaurantId,
+      },
+    })),
+  };
+
+  const handleMarkerPress = async (feature: any) => {
+    const restaurantId = feature.properties.restaurantId;
+    console.log('🏪 Nhà hàng được chọn:', feature.properties.name);
+    try {
+      const res = await getRestaurantDetail(restaurantId);
+      const detail = res.data;
+      console.log('🍽️ Chi tiết nhà hàng:', detail);
+      stackNav.navigate('ShopDetail', { item: detail });
+    } catch (error) {
+      console.error('❌ Lỗi khi lấy chi tiết nhà hàng:', error);
+    }
+  };
+
   // Hiển thị loading indicator khi đang tải dữ liệu
   if (loading) {
     return (
@@ -177,20 +180,6 @@ const MapScreen: React.FC = () => {
     );
   }
 
-  const isMarkerVisible = (marker: Restaurant, region: any) => {
-    if (!region) return true;
-    const latMin = region.latitude - region.latitudeDelta / 2;
-    const latMax = region.latitude + region.latitudeDelta / 2;
-    const lngMin = region.longitude - region.longitudeDelta / 2;
-    const lngMax = region.longitude + region.longitudeDelta / 2;
-    return (
-      marker.latitude >= latMin &&
-      marker.latitude <= latMax &&
-      marker.longitude >= lngMin &&
-      marker.longitude <= lngMax
-    );
-  };
-
   return (
     <KeyboardAvoidingView 
       style={{ flex: 1 }} 
@@ -199,172 +188,185 @@ const MapScreen: React.FC = () => {
     >
       <View style={styles.container}>
         <MapView
-          key={mapKey}
+          ref={mapRef}
+          style={StyleSheet.absoluteFillObject}
+          styleURL={Mapbox.StyleURL.Street}
           testID="MapView"
           accessibilityLabel="MapView"
-          style={StyleSheet.absoluteFillObject}
-          initialRegion={{
-            latitude: 16.05009,
-            longitude: 108.22302,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
+          // ✅ Bật zoom/pan/rotate gestures
+          zoomEnabled={true}
+          scrollEnabled={true}
+          pitchEnabled={true}
+          rotateEnabled={true}
+          onCameraChanged={(state) => {
+            const newZoom = Math.round(state.properties.zoom);
+            if (Math.abs(newZoom - currentZoom) >= 1) {
+              setCurrentZoom(newZoom);
+              fetchRestaurantsByZoom(newZoom);
+            }
           }}
-          onRegionChangeComplete={handleRegionChange}
         >
-        {restaurants
-          .filter(item => isMarkerVisible(item, visibleRegion))
-          .slice(0, 20) // 👈 Giới hạn tối đa 50 marker
-          .map(item => {
-            return (
-              <Marker
-                testID={`marker-${item.restaurantId}`}
-                accessibilityLabel={`marker-${item.restaurantId}`}
-                key={item.restaurantId}
-                coordinate={{
-                  latitude: item.latitude,
-                  longitude: item.longitude,
+          <Camera
+            ref={cameraRef}
+            zoomLevel={12}
+            centerCoordinate={[108.22302, 16.05009]}
+            animationDuration={0}
+            // ✅ Cho phép user control camera
+            allowUpdates={true}
+            minZoomLevel={10}
+            maxZoomLevel={20}
+          />
+
+          {/* 🗺️ Markers - Hiển thị nhà hàng trên bản đồ với ảnh nhỏ */}
+          {restaurants.slice(0, 50).map((restaurant) => (
+            <MarkerView
+              key={restaurant.restaurantId}
+              id={restaurant.restaurantId}
+              coordinate={[restaurant.longitude, restaurant.latitude]}
+              anchor={{ x: 0.5, y: 1 }}
+              allowOverlap
+            >
+              <TouchableOpacity
+                onPress={() => handleMarkerPress({
+                  properties: {
+                    restaurantId: restaurant.restaurantId,
+                    name: restaurant.name,
+                  }
+                })}
+                style={{
+                  alignItems: 'center',
                 }}
-                onPress={async () => {
-                  console.log('🏪 Nhà hàng được chọn:', item.name);
-                  const res = await getRestaurantDetail(item.restaurantId);
-                  const detail = res.data;
-                  console.log('🍽️ Chi tiết nhà hàng:', detail);
-                  stackNav.navigate('ShopDetail', { item: detail });
-                }}
-                anchor={{ x: 0.5, y: 1 }}
               >
-                {/* Label tên quán và địa chỉ */}
-                <View style={styles.labelContainer}>
-                  <Text style={styles.labelName} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  {/* <Text style={styles.labelAddress} numberOfLines={1}>
-                  {item.address}
-                </Text> */}
+                {/* Ảnh marker tròn */}
+                <View style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  overflow: 'hidden',
+                  borderWidth: 2,
+                  borderColor: '#FF5722',
+                  backgroundColor: '#FFFFFF',
+                }}>
+                  <Image
+                    source={{ uri: restaurant.photo }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                    }}
+                    resizeMode="cover"
+                  />
                 </View>
-                <Image
-                  testID={`marker-image-${item.restaurantId}`}
-                  accessibilityLabel={`marker-image-${item.restaurantId}`}
-                  source={{ uri: item.photo }}
-                  style={styles.markerImage}
-                  onError={e => {
-                    console.warn(
-                      '❌ Lỗi load ảnh marker:',
-                      item.name,
-                      e.nativeEvent.error,
-                    );
-                  }}
-                />
-                <Callout tooltip>
-                  <View style={styles.callout}>
-                    <Image
-                      testID={`callout-image-${item.restaurantId}`}
-                      accessibilityLabel={`callout-image-${item.restaurantId}`}
-                      source={{ uri: item.photo }}
-                      style={styles.thumbnail}
-                    />
-                    <View>
-                      <Text
-                        testID={`callout-name-${item.restaurantId}`}
-                        accessibilityLabel={`callout-name-${item.restaurantId}`}
-                        style={styles.name}
-                      >
-                        {item.name}
-                      </Text>
-                      <Text
-                        testID={`callout-address-${item.restaurantId}`}
-                        accessibilityLabel={`callout-address-${item.restaurantId}`}
-                        style={styles.address}
-                      >
-                        {item.address}
-                      </Text>
-                    </View>
-                  </View>
-                </Callout>
-              </Marker>
-            );
-          })}
-      </MapView>
+                {/* Tên nhà hàng */}
+                <View style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  paddingHorizontal: 6,
+                  paddingVertical: 2,
+                  borderRadius: 4,
+                  marginTop: 2,
+                  maxWidth: 120,
+                }}>
+                  <Text style={{
+                    fontSize: 10,
+                    fontWeight: '600',
+                    color: '#333',
+                  }} numberOfLines={1}>
+                    {restaurant.name}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </MarkerView>
+          ))}
+        </MapView>
 
-      <View
-        style={styles.searchBarContainer}
-        testID="search-bar-container"
-        accessibilityLabel="search-bar-container"
-      >
+        {/* Search Bar */}
         <View
-          style={styles.searchBar}
-          testID="search-bar"
-          accessibilityLabel="search-bar"
+          style={styles.searchBarContainer}
+          testID="search-bar-container"
+          accessibilityLabel="search-bar-container"
         >
-          <Image
-            source={require('../assets/gps.png')}
-            style={styles.mapIcon}
-            testID="gps-icon"
-            accessibilityLabel="gps-icon"
-          />
-
-          <TextInput
-            testID="search-input"
-            accessibilityLabel="search-input"
-            placeholder="Tìm kiếm ở đây"
-            placeholderTextColor="#555"
-            style={styles.searchInput}
-            value={searchText}
-            onChangeText={setSearchText}
-          />
-
-          <TouchableOpacity
-            testID="button-avt"
-            accessibilityLabel="button-avt"
-            onPress={handleAvatarPress}
+          <View
+            style={styles.searchBar}
+            testID="search-bar"
+            accessibilityLabel="search-bar"
           >
             <Image
-              source={
-                isLoggedIn
-                  ? avatarUrl
-                    ? { uri: avatarUrl }
-                    : require('../assets/avt_default.jpg')
-                  : require('../assets/menu.png')
-              }
-              style={styles.avatar}
-              testID="avatar-image"
-              accessibilityLabel="avatar-image"
+              source={require('../assets/gps.png')}
+              style={styles.mapIcon}
+              testID="gps-icon"
+              accessibilityLabel="gps-icon"
             />
-          </TouchableOpacity>
-        </View>
-      </View>
 
-      {searchText.length > 0 && (
-        <View style={styles.listSearch}>
-          {filteredRestaurants.length === 0 ? (
-            <Text style={{ padding: 12, color: '#888' }}>
-              Không tìm thấy quán nào
-            </Text>
-          ) : (
-            filteredRestaurants.map(item => (
-              <TouchableOpacity
-                key={item.restaurantId}
-                style={{
-                  padding: 12,
-                  borderBottomWidth: 0.5,
-                  borderColor: '#eee',
-                }}
-                onPress={async () => {
-                  setSearchText('');
-                  const res = await getRestaurantDetail(item.restaurantId);
-                  const detail = res.data;
-                  stackNav.navigate('ShopDetail', { item: detail });
-                }}
-              >
-                <Text style={{ fontWeight: 'bold' }}>{item.name}</Text>
-                <Text style={{ color: '#666', fontSize: 12 }}>
-                  {item.address}
-                </Text>
-              </TouchableOpacity>
-            ))
-          )}
+            <TextInput
+              testID="search-input"
+              accessibilityLabel="search-input"
+              placeholder="Tìm kiếm ở đây"
+              placeholderTextColor="#555"
+              style={styles.searchInput}
+              value={searchText}
+              onChangeText={setSearchText}
+            />
+
+            <TouchableOpacity
+              testID="button-avt"
+              accessibilityLabel="button-avt"
+              onPress={handleAvatarPress}
+            >
+              <Image
+                source={
+                  isLoggedIn
+                    ? avatarUrl
+                      ? { uri: avatarUrl }
+                      : require('../assets/avt_default.jpg')
+                    : require('../assets/menu.png')
+                }
+                style={styles.avatar}
+                testID="avatar-image"
+                accessibilityLabel="avatar-image"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-      )}
+
+        {/* Search Results */}
+        {searchText.length > 0 && (
+          <View style={styles.listSearch}>
+            {filteredRestaurants.length === 0 ? (
+              <Text style={{ padding: 12, color: '#888' }}>
+                Không tìm thấy quán nào
+              </Text>
+            ) : (
+              filteredRestaurants.map(item => (
+                <TouchableOpacity
+                  key={item.restaurantId}
+                  style={{
+                    padding: 12,
+                    borderBottomWidth: 0.5,
+                    borderColor: '#eee',
+                  }}
+                  onPress={async () => {
+                    setSearchText('');
+                    // Fly to location
+                    cameraRef.current?.setCamera({
+                      centerCoordinate: [item.longitude, item.latitude],
+                      zoomLevel: 15,
+                      animationDuration: 1000,
+                    });
+                    
+                    // Get details and navigate
+                    const res = await getRestaurantDetail(item.restaurantId);
+                    const detail = res.data;
+                    stackNav.navigate('ShopDetail', { item: detail });
+                  }}
+                >
+                  <Text style={{ fontWeight: 'bold' }}>{item.name}</Text>
+                  <Text style={{ color: '#666', fontSize: 12 }}>
+                    {item.address}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
