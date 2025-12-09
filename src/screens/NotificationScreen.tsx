@@ -32,18 +32,25 @@ export default function NotificationScreen() {
 
   const handleNotificationPress = (item: Notification) => {
     try {
-      // targetUrl có dạng: /restaurants/{restaurantId}/reviews/{reviewId}
-      const parts = item.targetUrl.split('/');
-      const restaurantId = parts[2];
+      // targetUrl có dạng: /vendor/restaurants/{restaurantId}/reviews/{reviewId}
+      const parts = item.targetUrl.split('/').filter(p => p); // Loại bỏ phần tử rỗng
+      const restaurantIndex = parts.indexOf('restaurants');
+      const reviewIndex = parts.indexOf('reviews');
+
+      const restaurantId =
+        restaurantIndex !== -1 ? parts[restaurantIndex + 1] : null;
+      const reviewId = reviewIndex !== -1 ? parts[reviewIndex + 1] : null;
+
       console.log('restaurantId:', restaurantId);
-      const reviewId = parts[4];
       console.log('reviewId:', reviewId);
 
-      navigation.navigate('ShopDetail', {
-        restaurantId,
-        reviewId,
-        fromNotification: true,
-      });
+      if (restaurantId) {
+        navigation.navigate('ShopDetail', {
+          restaurantId,
+          reviewId,
+          fromNotification: true,
+        });
+      }
     } catch (error) {
       console.error('Lỗi khi xử lý targetUrl:', error);
     }

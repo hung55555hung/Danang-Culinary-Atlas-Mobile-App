@@ -21,6 +21,14 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
+  reportButton: {
+    padding: 5,
+    marginRight: 5,
+  },
+  reportIcon: {
+    width: 24,
+    height: 24,
+  },
   row: { flexDirection: 'row', alignItems: 'center', marginBottom: 5 },
   ratingNumber: { fontSize: 18, fontWeight: 'bold', marginRight: 5 },
   category: { fontSize: 16, color: 'gray', marginBottom: 10 },

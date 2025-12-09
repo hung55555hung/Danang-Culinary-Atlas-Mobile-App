@@ -7,3 +7,4 @@
 -report
 -khi đăng kí món ăn thì món ăn sẽ hiển thị ở trang chi tiết nhà nhà(done)
 -Check lại status update Dish
+-tạo notification khi report nhà hàng

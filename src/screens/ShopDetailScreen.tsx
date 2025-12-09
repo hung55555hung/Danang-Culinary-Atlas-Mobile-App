@@ -8,6 +8,8 @@ import {
   ScrollView,
   Modal,
   ActivityIndicator,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import RatingStars from '../components/RatingStars';
@@ -16,7 +18,11 @@ import RestaurantInfo from '../components/RestaurantInfo';
 import { useRestaurantDetail } from '../hooks/useRestaurantDetail';
 import { useRestaurantReviews } from '../hooks/useRestaurantReviews';
 import styles from '../styles/ShopDetailStyles';
-import { getRestaurantById, getDishesOfRestaurant } from '../api/apiConfig';
+import {
+  getRestaurantById,
+  getDishesOfRestaurant,
+  createReport,
+} from '../api/apiConfig';
 import { handleImagePreview } from '../utils/imagePreview';
 import { get } from 'lodash';
 
@@ -34,6 +40,9 @@ export default function RestaurantDetailScreen() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuLoading, setMenuLoading] = useState(false);
   const [menuDishes, setMenuDishes] = useState<any[]>([]);
+  const [reportVisible, setReportVisible] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
   console.log('Reviews:', reviews);
 
   useEffect(() => {
@@ -82,6 +91,41 @@ export default function RestaurantDetailScreen() {
     }
   }, [menuVisible]);
 
+  // Hàm xử lý gửi report
+  const handleSubmitReport = async () => {
+    if (!reportReason.trim()) {
+      Alert.alert('Thông báo', 'Vui lòng nhập lý do báo cáo');
+      return;
+    }
+
+    Alert.alert('Xác nhận', 'Bạn có chắc chắn muốn gửi báo cáo này?', [
+      {
+        text: 'Hủy',
+        style: 'cancel',
+      },
+      {
+        text: 'Xác nhận',
+        onPress: async () => {
+          setReportLoading(true);
+          try {
+            await createReport({
+              restaurantId: currentRestaurantId,
+              reason: reportReason,
+            });
+            Alert.alert('Thành công', 'Đã gửi báo cáo thành công');
+            setReportVisible(false);
+            setReportReason('');
+          } catch (error) {
+            console.error('Lỗi khi gửi báo cáo:', error);
+            Alert.alert('Lỗi', 'Không thể gửi báo cáo. Vui lòng thử lại');
+          } finally {
+            setReportLoading(false);
+          }
+        },
+      },
+    ]);
+  };
+
   return (
     <ScrollView
       style={styles.container}
@@ -102,6 +146,19 @@ export default function RestaurantDetailScreen() {
         >
           {restaurantDetail?.name}
         </Text>
+        <TouchableOpacity
+          testID="report-button"
+          accessibilityLabel="report-button"
+          style={styles.reportButton}
+          onPress={() => setReportVisible(true)}
+        >
+          <Image
+            testID="report-icon"
+            accessibilityLabel="report-icon"
+            style={styles.reportIcon}
+            source={require('../assets/report.png')}
+          />
+        </TouchableOpacity>
         <TouchableOpacity
           testID="close-button"
           accessibilityLabel="close-button"
@@ -353,6 +410,123 @@ export default function RestaurantDetailScreen() {
                 style={{ marginBottom: 8 }}
               />
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal Report */}
+      <Modal
+        visible={reportVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setReportVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              padding: 20,
+              width: '85%',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: 'bold',
+                marginBottom: 15,
+                textAlign: 'center',
+              }}
+            >
+              Báo cáo nhà hàng
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: '#666',
+                marginBottom: 10,
+              }}
+            >
+              Lý do báo cáo:
+            </Text>
+            <TextInput
+              style={{
+                borderWidth: 1,
+                borderColor: '#ccc',
+                borderRadius: 8,
+                padding: 12,
+                minHeight: 100,
+                textAlignVertical: 'top',
+                marginBottom: 20,
+              }}
+              placeholder="Nhập lý do báo cáo..."
+              value={reportReason}
+              onChangeText={setReportReason}
+              multiline
+              editable={!reportLoading}
+            />
+            <View
+              style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+            >
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: '#ccc',
+                  padding: 12,
+                  borderRadius: 8,
+                  marginRight: 10,
+                }}
+                onPress={() => {
+                  setReportVisible(false);
+                  setReportReason('');
+                }}
+                disabled={reportLoading}
+              >
+                <Text
+                  style={{
+                    color: '#333',
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                  }}
+                >
+                  Hủy
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: '#FF3B30',
+                  padding: 12,
+                  borderRadius: 8,
+                  marginLeft: 10,
+                }}
+                onPress={handleSubmitReport}
+                disabled={reportLoading}
+              >
+                {reportLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text
+                    style={{
+                      color: '#fff',
+                      fontSize: 16,
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                    }}
+                  >
+                    Gửi báo cáo
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>

@@ -192,4 +192,13 @@ export const resetPassword = async (data: {
   return API.post('/auth/reset-password', data);
 };
 
+export const createReport = async (data: {
+  restaurantId: string;
+  dishId?: string;
+  reviewId?: string;
+  reason: string;
+}) => {
+  return API.post('/reports', data);
+};
+
 export default API;
