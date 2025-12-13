@@ -7,7 +7,9 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   ScrollView,
+  Platform,
 } from 'react-native';
 import styles from '../styles/SigninStyles';
 import { useNavigation } from '@react-navigation/native';
@@ -70,88 +72,94 @@ export default function SigninScreen() {
   return (
     <>
       <StatusBar hidden={true} animated={true} />
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
       >
-        <View style={styles.container}>
-          {/* Header */}
-          <Header title="Đăng nhập" showBack={true} />
-          <View style={styles.body}>
-            {/* Logo */}
-            <Image
-              source={require('../assets/logo2.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-
-            {/* Input Email */}
-            <TextInput
-              testID="txt-email"
-              accessibilityLabel="txt-email"
-              placeholder="Email"
-              style={styles.input}
-              placeholderTextColor="#666"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-            />
-
-            {/* Input Password */}
-            <View style={styles.passwordContainer}>
-              <TextInput
-                testID="txt-pw"
-                accessibilityLabel="txt-pw"
-                placeholder="Mật khẩu"
-                secureTextEntry={!showPassword}
-                style={styles.passwordInput}
-                placeholderTextColor="#666"
-                value={password}
-                onChangeText={setPassword}
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.container}>
+            {/* Header */}
+            <Header title="Đăng nhập" showBack={true} />
+            <View style={styles.body}>
+              {/* Logo */}
+              <Image
+                source={require('../assets/logo2.png')}
+                style={styles.logo}
+                resizeMode="contain"
               />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Image
-                  source={
-                    showPassword
-                      ? require('../assets/show.png')
-                      : require('../assets/hide.png')
-                  }
-                  style={styles.eyeIcon}
+
+              {/* Input Email */}
+              <TextInput
+                testID="txt-email"
+                accessibilityLabel="txt-email"
+                placeholder="Email"
+                style={styles.input}
+                placeholderTextColor="#666"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+              />
+
+              {/* Input Password */}
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  testID="txt-pw"
+                  accessibilityLabel="txt-pw"
+                  placeholder="Mật khẩu"
+                  secureTextEntry={!showPassword}
+                  style={styles.passwordInput}
+                  placeholderTextColor="#666"
+                  value={password}
+                  onChangeText={setPassword}
                 />
-              </TouchableOpacity>
-            </View>
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Image
+                    source={
+                      showPassword
+                        ? require('../assets/show.png')
+                        : require('../assets/hide.png')
+                    }
+                    style={styles.eyeIcon}
+                  />
+                </TouchableOpacity>
+              </View>
 
-            {/* Quên mật khẩu */}
-            <View style={styles.forgotPasswordWrapper}>
+              {/* Quên mật khẩu */}
+              <View style={styles.forgotPasswordWrapper}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ForgotPassword')}
+                >
+                  <Text style={styles.forgotPassword}>Quên mật khẩu?</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Button Login */}
               <TouchableOpacity
-                onPress={() => navigation.navigate('ForgotPassword')}
+                testID="button-sigin2"
+                accessibilityLabel="button-sigin2"
+                style={styles.loginButton}
+                onPress={handleLogin}
+                disabled={loading}
               >
-                <Text style={styles.forgotPassword}>Quên mật khẩu?</Text>
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.loginText}>Đăng nhập</Text>
+                )}
               </TouchableOpacity>
             </View>
-
-            {/* Button Login */}
-            <TouchableOpacity
-              testID="button-sigin2"
-              accessibilityLabel="button-sigin2"
-              style={styles.loginButton}
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.loginText}>Đăng nhập</Text>
-              )}
-            </TouchableOpacity>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </>
   );
 }

@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
   <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
   <application
     android:name=".MainApplication"
@@ -30,9 +32,10 @@
       </intent-filter>
 
     </activity>
+
     <meta-data
-      android:name="com.google.android.geo.API_KEY"
-      android:value="AIzaSyDSxJc-mTAGdJYQ8XE7DUXSNrUv4qbq0NI" />
+      android:name="com.mapbox.AccessToken"
+      android:value="@string/mapbox_access_token" />
 
   </application>
 </manifest>

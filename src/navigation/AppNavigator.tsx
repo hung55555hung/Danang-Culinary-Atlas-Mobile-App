@@ -20,6 +20,7 @@ import AddShopScreen from '../screens/AddShopScreen';
 import VendorDishesScreen from '../screens/VendorDishesScreen';
 import AddDishScreen from '../screens/AddDishScreen';
 import EditDishScreen from '../screens/EditDishScreen';
+import NavigationScreen from '../screens/NavigationScreen';
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: ['atlasculinary://'],
   config: {
@@ -47,6 +48,7 @@ export type RootStackParamList = {
   VendorDishes: undefined;
   AddDish: undefined;
   EditDish: undefined;
+  Navigation: { destinationName: string; destinationCoords: [number, number] };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -76,6 +78,7 @@ export default function AppNavigator() {
         <Stack.Screen name="VendorDishes" component={VendorDishesScreen} />
         <Stack.Screen name="AddDish" component={AddDishScreen} />
         <Stack.Screen name="EditDish" component={EditDishScreen} />
+        <Stack.Screen name="Navigation" component={NavigationScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -9,6 +9,8 @@ import {
   Modal,
   FlatList,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import styles from '../styles/SigninStyles';
 import { registerAccount } from '../api/apiConfig';
@@ -72,12 +74,16 @@ export default function RegisterScreen({ navigation }: any) {
   return (
     <>
       <StatusBar hidden={true} animated={true} />
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
       >
-        <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {/* Header */}
           <Header title="Đăng ký" showBack={true} />
           <View style={styles.body}>
@@ -255,8 +261,8 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
             </View>
           </Modal>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </>
   );
 }

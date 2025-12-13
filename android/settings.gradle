@@ -1,6 +1,28 @@
 pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
 plugins { id("com.facebook.react.settings") }
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url = uri("https://api.mapbox.com/downloads/v2/releases/maven")
+            authentication {
+                basic(BasicAuthentication)
+            }
+            credentials {
+                username = "mapbox"
+                // Đọc token từ gradle.properties (gitignored) hoặc environment variable
+                 password = providers.gradleProperty("MAPBOX_DOWNLOADS_TOKEN")
+                    .orElse(System.getenv("MAPBOX_DOWNLOADS_TOKEN"))
+                    .get()
+            }
+        }
+    }
+}
+
 rootProject.name = 'FoodMapApp'
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
