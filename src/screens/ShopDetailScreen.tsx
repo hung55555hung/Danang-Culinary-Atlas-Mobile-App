@@ -29,12 +29,13 @@ import { get } from 'lodash';
 export default function RestaurantDetailScreen() {
   const route = useRoute<any>();
   const navigate = useNavigation<any>();
-  const { item, restaurantId, reviewId, fromNotification } = route.params || {};
+  const { item, restaurantId, reviewId, fromNotification, needsFetchDetail } =
+    route.params || {};
   const flatListRef = useRef<FlatList<any>>(null);
   const currentRestaurantId = item ? item.restaurantId : restaurantId;
   const { reviews, loading, error } = useRestaurantReviews(currentRestaurantId);
   const [restaurantDetail, setRestaurantDetail] = useState<any>(item || null);
-  const [loadingDetail, setLoadingDetail] = useState(!item);
+  const [loadingDetail, setLoadingDetail] = useState(!item || needsFetchDetail);
   const { rating, setRating, foodImages } =
     useRestaurantDetail(restaurantDetail);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -45,21 +46,36 @@ export default function RestaurantDetailScreen() {
   const [reportLoading, setReportLoading] = useState(false);
   console.log('Reviews:', reviews);
 
+  // 🔹 Fetch chi tiết nhà hàng khi cần (từ MapScreen hoặc không có item)
   useEffect(() => {
     const fetchRestaurant = async () => {
-      if (!item && currentRestaurantId) {
+      // Fetch khi: 1) Không có item HOẶC 2) Có needsFetchDetail flag
+      if (
+        (!item && currentRestaurantId) ||
+        (needsFetchDetail && currentRestaurantId)
+      ) {
+        setLoadingDetail(true);
         try {
+          console.log('🔄 Đang fetch chi tiết nhà hàng:', currentRestaurantId);
           const response = await getRestaurantById(currentRestaurantId);
           setRestaurantDetail(response.data);
+          console.log('✅ Đã tải chi tiết nhà hàng:', response.data.name);
         } catch (err) {
-          console.error('Lỗi khi tải chi tiết nhà hàng:', err);
+          console.error('❌ Lỗi khi tải chi tiết nhà hàng:', err);
+          Alert.alert(
+            'Lỗi',
+            'Không thể tải thông tin nhà hàng. Vui lòng thử lại.',
+          );
         } finally {
           setLoadingDetail(false);
         }
+      } else {
+        // Đã có đầy đủ thông tin, không cần fetch
+        setLoadingDetail(false);
       }
     };
     fetchRestaurant();
-  }, [currentRestaurantId]);
+  }, [currentRestaurantId, needsFetchDetail]);
 
   useEffect(() => {
     if (fromNotification && reviewId && reviews.length > 0) {

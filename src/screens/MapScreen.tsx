@@ -92,7 +92,7 @@ const MapScreen: React.FC = () => {
           return isValid;
         });
 
-        console.log('✅ Nhà hàng hợp lệ:', validRestaurants.length);
+        console.log('✅ Nhà hàng hợp lệ:', validRestaurants);
         setRestaurants(validRestaurants);
       } catch (err) {
         console.error('❌ Lỗi khi tải danh sách nhà hàng:', err);
@@ -244,10 +244,10 @@ const MapScreen: React.FC = () => {
     const restaurantId = feature.properties.restaurantId;
     console.log('🏪 Nhà hàng được chọn:', feature.properties.name);
     try {
-      const res = await getRestaurantDetail(restaurantId);
-      const detail = res.data;
-      console.log('🍽️ Chi tiết nhà hàng:', detail);
-      stackNav.navigate('ShopDetail', { item: detail });
+      // const res = await getRestaurantDetail(restaurantId);
+      // const detail = res.data;
+      // console.log('🍽️ Chi tiết nhà hàng:', detail);
+      stackNav.navigate('ShopDetail', { restaurantId: restaurantId });
     } catch (error) {
       console.error('❌ Lỗi khi lấy chi tiết nhà hàng:', error);
     }
@@ -321,64 +321,71 @@ const MapScreen: React.FC = () => {
               coordinate={[restaurant.longitude, restaurant.latitude]}
               anchor={{ x: 0.5, y: 1 }}
               allowOverlap
+              isSelected={false}
             >
-              <TouchableOpacity
-                onPress={() =>
-                  handleMarkerPress({
-                    properties: {
-                      restaurantId: restaurant.restaurantId,
-                      name: restaurant.name,
-                    },
-                  })
-                }
-                style={{
-                  alignItems: 'center',
-                }}
-              >
-                {/* Ảnh marker tròn */}
-                <View
+              <View pointerEvents="auto">
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                  delayPressIn={0}
+                  onPress={() => {
+                    console.log('click marker:', restaurant.name);
+                    handleMarkerPress({
+                      properties: {
+                        restaurantId: restaurant.restaurantId,
+                        name: restaurant.name,
+                      },
+                    });
+                  }}
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    overflow: 'hidden',
-                    borderWidth: 2,
-                    borderColor: '#FF5722',
-                    backgroundColor: '#FFFFFF',
+                    alignItems: 'center',
                   }}
                 >
-                  <Image
-                    source={{ uri: restaurant.photo }}
+                  {/* Ảnh marker tròn */}
+                  <View
                     style={{
-                      width: '100%',
-                      height: '100%',
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      overflow: 'hidden',
+                      borderWidth: 2,
+                      borderColor: '#FF5722',
+                      backgroundColor: '#FFFFFF',
                     }}
-                    resizeMode="cover"
-                  />
-                </View>
-                {/* Tên nhà hàng */}
-                <View
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    paddingHorizontal: 6,
-                    paddingVertical: 2,
-                    borderRadius: 4,
-                    marginTop: 2,
-                    maxWidth: 120,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 10,
-                      fontWeight: '600',
-                      color: '#333',
-                    }}
-                    numberOfLines={1}
                   >
-                    {restaurant.name}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                    <Image
+                      source={{ uri: restaurant.photo }}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                      }}
+                      resizeMode="cover"
+                    />
+                  </View>
+                  {/* Tên nhà hàng */}
+                  <View
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      paddingHorizontal: 6,
+                      paddingVertical: 2,
+                      borderRadius: 4,
+                      marginTop: 2,
+                      maxWidth: 120,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        fontWeight: '600',
+                        color: '#333',
+                      }}
+                      numberOfLines={1}
+                    >
+                      {restaurant.name}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
             </MarkerView>
           ))}
         </MapView>

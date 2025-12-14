@@ -87,7 +87,7 @@ android {
         
         // 🗺️ Provide Mapbox access token to native at inflate time
         // Generates a string resource: R.string.mapbox_access_token
-        resValue "string", "mapbox_access_token", project.findProperty("MAPBOX_ACCESS_TOKEN") ?: "your_mapbox_access_token_here"
+        resValue "string", "mapbox_access_token", project.findProperty("MAPBOX_ACCESS_TOKEN") ?: "pk.eyJ1IjoiaHVuZzA1NDcyNCIsImEiOiJjbWl5bHk3eWIwaHJoM2dweXBxMGcwMm10In0.gXxq4YOgffAD8vV7y6nSxA"
     }
     signingConfigs {
         debug {
