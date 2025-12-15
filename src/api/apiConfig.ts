@@ -208,4 +208,16 @@ export const createReport = async (data: {
   return API.post('/reports', data);
 };
 
+export const getRecommendations = async (data: {
+  hour: number;
+  k: number;
+  target_type: 'restaurant' | 'dish';
+  user_id: string;
+}) => {
+  return axios.post(
+    'https://iloveuhiuhiu-danang-food-recsys.hf.space/api/v1/recommend',
+    data,
+  );
+};
+
 export default API;

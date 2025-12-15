@@ -11,6 +11,9 @@ import {
   StyleSheet,
   PermissionsAndroid,
   Alert,
+  ScrollView,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import Mapbox, {
   MapView,
@@ -24,10 +27,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import styles from '../styles/MapStyles';
-import { getRestaurants, getRestaurantDetail } from '../api/apiConfig';
+import {
+  getRestaurants,
+  getRestaurantDetail,
+  getRestaurantById,
+} from '../api/apiConfig';
 import { useFocusEffect } from '@react-navigation/native';
 import debounce from 'lodash/debounce';
 import Geolocation from '@react-native-community/geolocation';
+import { useRecommendations } from '../hooks/useRecommendations';
 
 interface Restaurant {
   restaurantId: string;
@@ -35,7 +43,12 @@ interface Restaurant {
   address: string;
   latitude: number;
   longitude: number;
-  photo: string;
+  photo?: string;
+  images?: {
+    photo?: string;
+    sub_photo?: string[];
+  };
+  averageRating?: number;
 }
 
 const MapScreen: React.FC = () => {
@@ -43,6 +56,19 @@ const MapScreen: React.FC = () => {
   const stackNav = useNavigation<any>();
   const mapRef = useRef<MapView>(null);
   const cameraRef = useRef<Camera>(null);
+
+  // Helper function để lấy ảnh từ restaurant
+  const getRestaurantImage = (restaurant: Restaurant): string => {
+    // Ưu tiên: restaurant.photo
+    // Thứ 2: restaurant.images.photo
+    // Thứ 3: restaurant.images.sub_photo[0]
+    return (
+      restaurant.photo ||
+      restaurant.images?.photo ||
+      restaurant.images?.sub_photo?.[0] ||
+      ''
+    );
+  };
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -57,6 +83,72 @@ const MapScreen: React.FC = () => {
     null,
   );
   const [locationPermission, setLocationPermission] = useState(false);
+  const [recommendedRestaurants, setRecommendedRestaurants] = useState<
+    Restaurant[]
+  >([]);
+
+  // Animation cho swipeable recommendations panel
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const [isRecommendationsExpanded, setIsRecommendationsExpanded] =
+    useState(true);
+
+  // Lấy danh sách quán ăn recommend (không cần đăng nhập)
+  const {
+    recommendations,
+    loading: recommendLoading,
+    contextLabel,
+    refetch,
+  } = useRecommendations({
+    k: 5,
+    targetType: 'restaurant',
+    enabled: true,
+  });
+
+  // PanResponder để xử lý swipe gestures
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Chỉ bắt đầu pan khi swipe dọc (dy > dx)
+        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // Chỉ cho phép kéo xuống (gestureState.dy > 0)
+        if (gestureState.dy > 0 && isRecommendationsExpanded) {
+          slideAnim.setValue(gestureState.dy);
+        }
+        // Chỉ cho phép kéo lên khi đang ẩn
+        if (gestureState.dy < 0 && !isRecommendationsExpanded) {
+          slideAnim.setValue(200 + gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        // Nếu kéo xuống quá 50px thì ẩn
+        if (gestureState.dy > 50 && isRecommendationsExpanded) {
+          Animated.spring(slideAnim, {
+            toValue: 200,
+            useNativeDriver: true,
+          }).start();
+          setIsRecommendationsExpanded(false);
+        }
+        // Nếu kéo lên quá -50px thì hiển thị
+        else if (gestureState.dy < -50 && !isRecommendationsExpanded) {
+          Animated.spring(slideAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+          setIsRecommendationsExpanded(true);
+        }
+        // Không đủ điều kiện thì trở lại vị trí ban đầu
+        else {
+          Animated.spring(slideAnim, {
+            toValue: isRecommendationsExpanded ? 0 : 200,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    }),
+  ).current;
 
   useFocusEffect(
     useCallback(() => {
@@ -221,6 +313,61 @@ const MapScreen: React.FC = () => {
     }
   }, [searchText, restaurants]);
 
+  // 📊 Fetch thông tin các restaurants được recommend
+  useEffect(() => {
+    const fetchRecommendedRestaurants = async () => {
+      if (recommendations.length === 0) {
+        setRecommendedRestaurants([]);
+        return;
+      }
+
+      console.log('🔍 Fetching recommended restaurants...');
+      console.log(
+        '🎯 Recommendation IDs:',
+        recommendations.map(r => r.id),
+      );
+
+      try {
+        // Gọi API để lấy thông tin từng restaurant
+        const fetchPromises = recommendations.map(rec =>
+          getRestaurantById(rec.id).catch((err: any) => {
+            console.error(`❌ Lỗi khi lấy restaurant ${rec.id}:`, err.message);
+            return null;
+          }),
+        );
+
+        const results = await Promise.all(fetchPromises);
+
+        // Lọc bỏ các kết quả null và lấy data
+        const fetchedRestaurants = results
+          .filter((res: any) => res && res.data)
+          .map((res: any) => res!.data);
+
+        console.log(
+          `✅ Fetched ${fetchedRestaurants.length}/${recommendations.length} recommended restaurants`,
+        );
+
+        // Log để kiểm tra data của restaurants
+        fetchedRestaurants.forEach((restaurant: any, index: number) => {
+          console.log(`🏪 Restaurant ${index + 1}:`, {
+            id: restaurant.restaurantId,
+            name: restaurant.name,
+            photo: restaurant.photo || restaurant.images?.[0] || 'NO PHOTO',
+            hasPhoto: !!restaurant.photo,
+            hasImages: !!restaurant.images,
+          });
+        });
+
+        setRecommendedRestaurants(fetchedRestaurants);
+      } catch (err) {
+        console.error('❌ Lỗi khi fetch recommended restaurants:', err);
+        setRecommendedRestaurants([]);
+      }
+    };
+
+    fetchRecommendedRestaurants();
+  }, [recommendations]);
+
   // Convert restaurants to GeoJSON
   const restaurantsGeoJSON = {
     type: 'FeatureCollection',
@@ -244,9 +391,6 @@ const MapScreen: React.FC = () => {
     const restaurantId = feature.properties.restaurantId;
     console.log('🏪 Nhà hàng được chọn:', feature.properties.name);
     try {
-      // const res = await getRestaurantDetail(restaurantId);
-      // const detail = res.data;
-      // console.log('🍽️ Chi tiết nhà hàng:', detail);
       stackNav.navigate('ShopDetail', { restaurantId: restaurantId });
     } catch (error) {
       console.error('❌ Lỗi khi lấy chi tiết nhà hàng:', error);
@@ -354,7 +498,7 @@ const MapScreen: React.FC = () => {
                     }}
                   >
                     <Image
-                      source={{ uri: restaurant.photo }}
+                      source={{ uri: getRestaurantImage(restaurant) }}
                       style={{
                         width: '100%',
                         height: '100%',
@@ -490,6 +634,103 @@ const MapScreen: React.FC = () => {
           >
             <Text style={styles.locationButtonText}>📍</Text>
           </TouchableOpacity>
+        )}
+
+        {/* 🌟 Horizontal ScrollView cho recommendations ở góc dưới */}
+        {recommendations.length > 0 && (
+          <Animated.View
+            style={[
+              styles.recommendationsBottomContainer,
+              {
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            {/* Swipe handle */}
+            <View {...panResponder.panHandlers} style={styles.swipeHandle}>
+              <View style={styles.swipeIndicator} />
+            </View>
+
+            <View style={styles.recommendationsBottomHeader}>
+              <Text style={styles.recommendationsBottomTitle}>
+                ⭐ Gợi ý cho bạn {contextLabel ? `(${contextLabel})` : ''}
+              </Text>
+            </View>
+
+            {recommendLoading ? (
+              <ActivityIndicator
+                size="small"
+                color="#FF5722"
+                style={{ paddingVertical: 20 }}
+              />
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.recommendationsScrollContent}
+              >
+                {recommendations.map((rec, index) => {
+                  // Tìm restaurant từ danh sách recommendedRestaurants
+                  const restaurant = recommendedRestaurants.find(
+                    r => r.restaurantId === rec.id,
+                  );
+                  if (!restaurant) {
+                    console.log(
+                      `⚠️ Chưa load được restaurant với ID: ${rec.id}`,
+                    );
+                    return null;
+                  }
+
+                  return (
+                    <TouchableOpacity
+                      key={rec.id}
+                      style={styles.recommendationCard}
+                      onPress={() => {
+                        cameraRef.current?.setCamera({
+                          centerCoordinate: [
+                            restaurant.longitude,
+                            restaurant.latitude,
+                          ],
+                          zoomLevel: 16,
+                          animationDuration: 1000,
+                        });
+                        stackNav.navigate('ShopDetail', {
+                          restaurantId: rec.id,
+                        });
+                      }}
+                    >
+                      <View style={styles.recommendationCardImageContainer}>
+                        <Image
+                          source={{ uri: getRestaurantImage(restaurant) }}
+                          style={styles.recommendationCardImage}
+                          resizeMode="cover"
+                        />
+                        <View style={styles.rankBadgeSmall}>
+                          <Text style={styles.rankTextSmall}>#{rec.rank}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.recommendationCardInfo}>
+                        <Text
+                          style={styles.recommendationCardName}
+                          numberOfLines={1}
+                        >
+                          {restaurant.name}
+                        </Text>
+                        <View style={styles.ratingRow}>
+                          <Text style={styles.starIcon}>⭐</Text>
+                          <Text style={styles.ratingText}>
+                            {restaurant.averageRating
+                              ? restaurant.averageRating.toFixed(1)
+                              : 'N/A'}
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+          </Animated.View>
         )}
       </View>
     </KeyboardAvoidingView>
