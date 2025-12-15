@@ -99,14 +99,18 @@ export const useImagePicker = (mode: ImagePickerMode = 'multiple') => {
   };
 
   // Upload tất cả ảnh lên Cloudinary
-  const uploadAllImages = async (): Promise<string[]> => {
-    if (localImages.length === 0) {
+  const uploadAllImages = async (
+    imagesToUpload?: string[],
+  ): Promise<string[]> => {
+    const imageList = imagesToUpload || localImages;
+
+    if (imageList.length === 0) {
       return [];
     }
 
     try {
       setUploading(true);
-      const uploadPromises = localImages.map(async uri => {
+      const uploadPromises = imageList.map(async uri => {
         const base64 = await RNFS.readFile(uri, 'base64');
         const base64String = `data:image/jpeg;base64,${base64}`;
         return await uploadToCloudinary(base64String);
@@ -154,6 +158,7 @@ export const useImagePicker = (mode: ImagePickerMode = 'multiple') => {
     images,
     localImages,
     setImages,
+    setLocalImages,
     uploading,
     handleAddPhoto,
     uploadAllImages,

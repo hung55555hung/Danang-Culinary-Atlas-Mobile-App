@@ -8,3 +8,6 @@
 -khi đăng kí món ăn thì món ăn sẽ hiển thị ở trang chi tiết nhà nhà(done)
 -Check lại status update Dish
 -tạo notification khi report nhà hàng
+-sử dụng MarkerView của Boxmap thì hiệu năng click Marker k cao, click lâu lâu được lâu lâu không, chuyển sang sd ShapeSource thì hiệu năng click cao nhưng k laod được ảnh động
+-check api edit nhà hàng
+-check api get nhà hàng(tag trả về null mặt dù trong db có)

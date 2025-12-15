@@ -45,6 +45,7 @@ export const useRestaurantTags = () => {
   return {
     tags,
     selectedTags,
+    setSelectedTags,
     loading,
     toggleTag,
     isTagSelected,

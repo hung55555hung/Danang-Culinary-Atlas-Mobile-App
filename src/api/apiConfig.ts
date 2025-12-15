@@ -82,6 +82,9 @@ export const getDistrictsByProvince = (provinceId: number) =>
 export const getWardsByDistrict = (districtId: number) =>
   API.get(`/locations/districts/${districtId}/wards`);
 
+export const getWardById = (wardId: number) =>
+  API.get(`/locations/wards/${wardId}`);
+
 export const createRestaurant = async (data: {
   name: string;
   address: string;
@@ -123,6 +126,10 @@ export const requestPasswordReset = async (data: {
 
 export const getRestaurantTags = async () => {
   return API.get('/tags/restaurant');
+};
+
+export const getTagsByRestaurantId = async (restaurantId: string) => {
+  return API.get(`/tags/restaurant/${restaurantId}`);
 };
 
 export const changePassword = async (payload: {

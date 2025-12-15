@@ -157,11 +157,15 @@ export const useRegisterShop = () => {
       // Upload tất cả ảnh lên Cloudinary
       const uploadedUrls = await uploadAllImages();
 
-      // ✅ Tạo images với value là string URL (không phải object)
-      const imagesObject: { [key: string]: string } = {};
-      uploadedUrls.forEach((url, index) => {
-        imagesObject[`additionalProp${index}`] = url; // ✅ Chỉ gửi URL string
-      });
+      // ✅ Tạo images với ảnh đầu tiên là photo, các ảnh còn lại là sub_photo
+      const imagesObject: any = {
+        photo: uploadedUrls[0], // Ảnh đầu tiên
+      };
+
+      // Nếu có nhiều hơn 1 ảnh, thêm các ảnh còn lại vào sub_photo
+      if (uploadedUrls.length > 1) {
+        imagesObject.sub_photo = uploadedUrls.slice(1); // Các ảnh từ vị trí 1 trở đi
+      }
 
       const payload = {
         name,

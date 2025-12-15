@@ -212,7 +212,9 @@ const AddShopScreen = () => {
               }}
               onPress={() => {
                 setModalVisible(false);
-                navigation.navigate('EditShop', { shop: selectedShop });
+                navigation.navigate('EditShop', {
+                  restaurantId: selectedShop?.restaurantId,
+                });
               }}
             >
               <Image

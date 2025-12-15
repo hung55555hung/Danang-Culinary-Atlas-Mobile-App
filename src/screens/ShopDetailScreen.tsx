@@ -22,6 +22,7 @@ import {
   getRestaurantById,
   getDishesOfRestaurant,
   createReport,
+  getTagsByRestaurantId,
 } from '../api/apiConfig';
 import { handleImagePreview } from '../utils/imagePreview';
 import { get } from 'lodash';
@@ -44,6 +45,8 @@ export default function RestaurantDetailScreen() {
   const [reportVisible, setReportVisible] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportLoading, setReportLoading] = useState(false);
+  const [restaurantTags, setRestaurantTags] = useState<any[]>([]);
+  const [tagsLoading, setTagsLoading] = useState(false);
   console.log('Reviews:', reviews);
 
   // 🔹 Fetch chi tiết nhà hàng khi cần (từ MapScreen hoặc không có item)
@@ -76,6 +79,27 @@ export default function RestaurantDetailScreen() {
     };
     fetchRestaurant();
   }, [currentRestaurantId, needsFetchDetail]);
+
+  // 🔹 Fetch tags riêng cho nhà hàng
+  useEffect(() => {
+    const fetchRestaurantTags = async () => {
+      if (currentRestaurantId) {
+        setTagsLoading(true);
+        try {
+          console.log('🔄 Đang fetch tags cho nhà hàng:', currentRestaurantId);
+          const response = await getTagsByRestaurantId(currentRestaurantId);
+          setRestaurantTags(response.data || []);
+          console.log('✅ Đã tải tags:', response.data);
+        } catch (err) {
+          console.error('❌ Lỗi khi tải tags:', err);
+          setRestaurantTags([]);
+        } finally {
+          setTagsLoading(false);
+        }
+      }
+    };
+    fetchRestaurantTags();
+  }, [currentRestaurantId]);
 
   useEffect(() => {
     if (fromNotification && reviewId && reviews.length > 0) {
@@ -221,6 +245,35 @@ export default function RestaurantDetailScreen() {
       >
         Quán ăn
       </Text>
+
+      {/* Tags */}
+      {tagsLoading ? (
+        <ActivityIndicator style={{ marginVertical: 10 }} />
+      ) : restaurantTags.length > 0 ? (
+        <View
+          style={{ flexDirection: 'row', flexWrap: 'wrap', marginVertical: 10 }}
+        >
+          {restaurantTags.map((tag, index) => (
+            <View
+              key={tag.tagId || index}
+              style={{
+                backgroundColor: '#E3F2FD',
+                borderRadius: 16,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                marginRight: 8,
+                marginBottom: 8,
+              }}
+            >
+              <Text
+                style={{ color: '#1976D2', fontSize: 13, fontWeight: '500' }}
+              >
+                {tag.name}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
 
       {/* Ảnh */}
       <FlatList
