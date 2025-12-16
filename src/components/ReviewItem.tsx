@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { deleteReview } from '../api/apiConfig';
 import { Alert } from 'react-native';
+import { formatTimeAgo } from '../utils/time';
 
 interface ReviewItemProps {
   item: {
@@ -18,11 +19,18 @@ interface ReviewItemProps {
     content: string;
     images?: any;
     comment: string;
+    vendorReply?: string | null;
+    repliedAt?: string | null;
   };
   restaurantId: string;
+  onReviewDeleted?: (reviewId: string) => void;
 }
 
-export default function ReviewItem({ item, restaurantId }: ReviewItemProps) {
+export default function ReviewItem({
+  item,
+  restaurantId,
+  onReviewDeleted,
+}: ReviewItemProps) {
   const navigation = useNavigation<any>();
   const [menuVisible, setMenuVisible] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
@@ -35,13 +43,32 @@ export default function ReviewItem({ item, restaurantId }: ReviewItemProps) {
   }, [item.reviewerAccountId]);
 
   const handleDeleteReview = async (reviewId: string) => {
-    try {
-      const response = await deleteReview(reviewId);
-      Alert.alert('Review deleted successfully');
-    } catch (error) {
-      console.error('Error deleting review:', error);
-      Alert.alert('Failed to delete review. Please try again.');
-    }
+    Alert.alert(
+      'Xác nhận xóa',
+      'Bạn có chắc chắn muốn xóa đánh giá này không?',
+      [
+        {
+          text: 'Hủy',
+          style: 'cancel',
+        },
+        {
+          text: 'Xóa',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteReview(reviewId);
+              if (onReviewDeleted) {
+                onReviewDeleted(reviewId);
+              }
+              Alert.alert('Thành công', 'Đánh giá đã được xóa');
+            } catch (error) {
+              console.error('Error deleting review:', error);
+              Alert.alert('Lỗi', 'Xóa đánh giá thất bại. Vui lòng thử lại.');
+            }
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -200,6 +227,68 @@ export default function ReviewItem({ item, restaurantId }: ReviewItemProps) {
         >
           <Image source={{ uri: item.images[0] }} style={styles.reviewImage} />
         </TouchableOpacity>
+      )}
+
+      {/* Vendor Reply */}
+      {item.vendorReply && (
+        <View
+          style={{
+            marginLeft: 20,
+            marginTop: 5,
+            paddingHorizontal: 5,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 8,
+            }}
+          >
+            <View
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                backgroundColor: '#0C516F',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: 8,
+              }}
+            >
+              <Text style={{ fontSize: 14, color: '#fff', fontWeight: 'bold' }}>
+                Q
+              </Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: '#0C516F',
+                  letterSpacing: 0.2,
+                }}
+              >
+                Phản hồi từ chủ quán
+              </Text>
+              {item.repliedAt && (
+                <Text style={{ fontSize: 11, color: '#6c757d', marginTop: 2 }}>
+                  {formatTimeAgo(item.repliedAt)}
+                </Text>
+              )}
+            </View>
+          </View>
+          <Text
+            style={{
+              fontSize: 14,
+              color: '#2c3e50',
+              lineHeight: 22,
+              paddingLeft: 36,
+            }}
+          >
+            {item.vendorReply}
+          </Text>
+        </View>
       )}
     </View>
   );

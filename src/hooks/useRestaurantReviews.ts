@@ -6,20 +6,26 @@ export const useRestaurantReviews = (restaurantId: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      const response = await getRestaurantReviews(restaurantId);
+      setReviews(response.data.content);
+    } catch (err) {
+      console.error('Lỗi khi lấy review:', err);
+      setError('Không thể tải đánh giá');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const response = await getRestaurantReviews(restaurantId);
-        setReviews(response.data.content);
-      } catch (err) {
-        console.error('Lỗi khi lấy review:', err);
-        setError('Không thể tải đánh giá');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchReviews();
   }, [restaurantId]);
 
-  return { reviews, loading, error };
+  const removeReview = (reviewId: string) => {
+    setReviews(prev => prev.filter(review => review.reviewId !== reviewId));
+  };
+
+  return { reviews, loading, error, refetch: fetchReviews, removeReview };
 };

@@ -35,7 +35,8 @@ export default function RestaurantDetailScreen() {
     route.params || {};
   const flatListRef = useRef<FlatList<any>>(null);
   const currentRestaurantId = item ? item.restaurantId : restaurantId;
-  const { reviews, loading, error } = useRestaurantReviews(currentRestaurantId);
+  const { reviews, loading, error, removeReview } =
+    useRestaurantReviews(currentRestaurantId);
   const [restaurantDetail, setRestaurantDetail] = useState<any>(item || null);
   const [loadingDetail, setLoadingDetail] = useState(!item || needsFetchDetail);
   const { rating, setRating, foodImages } =
@@ -406,7 +407,11 @@ export default function RestaurantDetailScreen() {
             accessibilityLabel={`review-item-${index}`}
             style={styles.reviewContainer}
           >
-            <ReviewItem item={item} restaurantId={currentRestaurantId} />
+            <ReviewItem
+              item={item}
+              restaurantId={currentRestaurantId}
+              onReviewDeleted={removeReview}
+            />
           </View>
         )}
         ItemSeparatorComponent={() => <View style={styles.reviewSeparator} />}

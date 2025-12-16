@@ -17,3 +17,4 @@
 + check nếu vendor thì khóa click comment(done)
 +check api:/api/v1/tags/restaurant/{restaurantId} tại sao user call k đc
 +fix hiển thị sao lẻ(vs 4.5 sao)
++create reply nếu tài khoản là vendor và restaurant đó thuộc vendor
