@@ -84,119 +84,121 @@ export default function RegisterScreen({ navigation }: any) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
-          <Header title="Đăng ký" showBack={true} />
-          <View style={styles.body}>
-            {/* Logo */}
-            <Image
-              source={require('../assets/logo2.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-
-            {/* Input Email */}
-            <TextInput
-              testID="input-email"
-              accessibilityLabel="input-email"
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              style={styles.input}
-              placeholderTextColor="#666"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-
-            {/* Input Password */}
-            <View style={styles.passwordContainer}>
-              <TextInput
-                testID="input-password"
-                accessibilityLabel="input-password"
-                placeholder="Mật khẩu"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                style={styles.passwordInput}
-                placeholderTextColor="#666"
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Image
-                  source={
-                    showPassword
-                      ? require('../assets/show.png')
-                      : require('../assets/hide.png')
-                  }
-                  style={styles.eyeIcon}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Input Confirm Password */}
-            <View style={styles.passwordContainer}>
-              <TextInput
-                testID="input-confirm-password"
-                accessibilityLabel="input-confirm-password"
-                placeholder="Xác nhận mật khẩu"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirmPassword}
-                style={styles.passwordInput}
-                placeholderTextColor="#666"
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                <Image
-                  source={
-                    showConfirmPassword
-                      ? require('../assets/show.png')
-                      : require('../assets/hide.png')
-                  }
-                  style={styles.eyeIcon}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Dropdown chọn Role */}
-            <TouchableOpacity
-              testID="dropdown-role"
-              accessibilityLabel="dropdown-role"
-              style={[
-                styles.input,
-                {
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                },
-              ]}
-              onPress={() => setModalVisible(true)}
-            >
-              <Text style={{ color: '#333', fontSize: 16 }}>
-                {role === 'USER'
-                  ? 'Người dùng'
-                  : role === 'VENDOR'
-                  ? 'Chủ quán'
-                  : 'Quản trị viên'}
-              </Text>
+          <View style={styles.container}>
+            {/* Header */}
+            <Header title="Đăng ký" showBack={true} />
+            <View style={styles.body}>
+              {/* Logo */}
               <Image
-                source={require('../assets/drop_d.png')}
-                style={{ width: 20, height: 20, tintColor: '#666' }}
+                source={require('../assets/logo2.png')}
+                style={styles.logo}
+                resizeMode="contain"
               />
-            </TouchableOpacity>
 
-            {/* Button Register */}
-            <TouchableOpacity
-              testID="button-register"
-              accessibilityLabel="button-register"
-              style={styles.loginButton}
-              onPress={handleRegister}
-            >
-              <Text style={styles.loginText}>Đăng ký</Text>
-            </TouchableOpacity>
+              {/* Input Email */}
+              <TextInput
+                testID="input-email"
+                accessibilityLabel="input-email"
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+                style={styles.input}
+                placeholderTextColor="#666"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+
+              {/* Input Password */}
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  testID="input-password"
+                  accessibilityLabel="input-password"
+                  placeholder="Mật khẩu"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  style={styles.passwordInput}
+                  placeholderTextColor="#666"
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Image
+                    source={
+                      showPassword
+                        ? require('../assets/show.png')
+                        : require('../assets/hide.png')
+                    }
+                    style={styles.eyeIcon}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Input Confirm Password */}
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  testID="input-confirm-password"
+                  accessibilityLabel="input-confirm-password"
+                  placeholder="Xác nhận mật khẩu"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  style={styles.passwordInput}
+                  placeholderTextColor="#666"
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <Image
+                    source={
+                      showConfirmPassword
+                        ? require('../assets/show.png')
+                        : require('../assets/hide.png')
+                    }
+                    style={styles.eyeIcon}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Dropdown chọn Role */}
+              <TouchableOpacity
+                testID="dropdown-role"
+                accessibilityLabel="dropdown-role"
+                style={[
+                  styles.input,
+                  {
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  },
+                ]}
+                onPress={() => setModalVisible(true)}
+              >
+                <Text style={{ color: '#333', fontSize: 16 }}>
+                  {role === 'USER'
+                    ? 'Người dùng'
+                    : role === 'VENDOR'
+                    ? 'Chủ quán'
+                    : 'Quản trị viên'}
+                </Text>
+                <Image
+                  source={require('../assets/drop_d.png')}
+                  style={{ width: 20, height: 20, tintColor: '#666' }}
+                />
+              </TouchableOpacity>
+
+              {/* Button Register */}
+              <TouchableOpacity
+                testID="button-register"
+                accessibilityLabel="button-register"
+                style={styles.loginButton}
+                onPress={handleRegister}
+              >
+                <Text style={styles.loginText}>Đăng ký</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Modal chọn Role */}
