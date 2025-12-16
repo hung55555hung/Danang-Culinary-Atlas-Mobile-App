@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 
 interface RatingStarsProps {
   maxStars?: number;
   onRatingChange?: (rating: number) => void;
+  initialRating?: number;
 }
 
 const RatingStars: React.FC<RatingStarsProps> = ({
   maxStars = 5,
   onRatingChange,
+  initialRating = 0,
 }) => {
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState(initialRating);
+
+  useEffect(() => {
+    setRating(initialRating);
+  }, [initialRating]);
 
   const handlePress = (value: number) => {
     setRating(value);

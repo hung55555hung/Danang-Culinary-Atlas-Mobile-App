@@ -26,6 +26,7 @@ import {
 } from '../api/apiConfig';
 import { handleImagePreview } from '../utils/imagePreview';
 import { get } from 'lodash';
+import { getRole } from '../utils/auth';
 
 export default function RestaurantDetailScreen() {
   const route = useRoute<any>();
@@ -374,11 +375,20 @@ export default function RestaurantDetailScreen() {
         <View testID="rating-stars" accessibilityLabel="rating-stars">
           <RatingStars
             maxStars={5}
-            onRatingChange={value => {
+            onRatingChange={async value => {
               setRating(value);
-              navigate.navigate('Review', {
-                restaurantId: restaurantDetail?.restaurantId,
-              });
+              const userRole = await getRole();
+              console.log('User role khi đánh giá:', userRole);
+              if (userRole === 'user') {
+                navigate.navigate('Review', {
+                  restaurantId: restaurantDetail?.restaurantId,
+                });
+              } else {
+                Alert.alert(
+                  'Thông báo',
+                  'Chỉ người dùng mới có thể đánh giá nhà hàng',
+                );
+              }
             }}
           />
         </View>
@@ -396,7 +406,7 @@ export default function RestaurantDetailScreen() {
             accessibilityLabel={`review-item-${index}`}
             style={styles.reviewContainer}
           >
-            <ReviewItem item={item} />
+            <ReviewItem item={item} restaurantId={currentRestaurantId} />
           </View>
         )}
         ItemSeparatorComponent={() => <View style={styles.reviewSeparator} />}

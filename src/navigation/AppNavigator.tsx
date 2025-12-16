@@ -7,6 +7,7 @@ import SigninScreen from '../screens/SigninScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 import ReviewScreen from '../screens/ReviewScreen';
+import EditReviewScreen from '../screens/EditReviewScreen';
 import ShopDetailScreen from '../screens/ShopDetailScreen';
 import DrawerNavigator from './DrawerNavigator';
 import RegisterShopScreen from '../screens/RegisterShopScreen';
@@ -37,6 +38,7 @@ export type RootStackParamList = {
   Register: undefined;
   Notification: undefined;
   Review: undefined;
+  EditReview: undefined;
   ShopDetail: undefined;
   Drawer: undefined;
   RegisterShop: undefined;
@@ -63,6 +65,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="ShopDetail" component={ShopDetailScreen} />
         <Stack.Screen name="Review" component={ReviewScreen} />
+        <Stack.Screen name="EditReview" component={EditReviewScreen} />
         <Stack.Screen name="Notification" component={NotificationScreen} />
         <Stack.Screen name="Signin" component={SigninScreen} />
         <Stack.Screen name="RegisterShop" component={RegisterShopScreen} />

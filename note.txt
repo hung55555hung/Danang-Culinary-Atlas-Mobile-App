@@ -11,3 +11,9 @@
 -sử dụng MarkerView của Boxmap thì hiệu năng click Marker k cao, click lâu lâu được lâu lâu không, chuyển sang sd ShapeSource thì hiệu năng click cao nhưng k laod được ảnh động
 -check api edit nhà hàng
 -check api get nhà hàng(tag trả về null mặt dù trong db có)
+
+- việc còn lại:
++ edit comment(done), delete comment
++ check nếu vendor thì khóa click comment(done)
++check api:/api/v1/tags/restaurant/{restaurantId} tại sao user call k đc
++fix hiển thị sao lẻ(vs 4.5 sao)

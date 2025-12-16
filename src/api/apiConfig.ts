@@ -109,6 +109,17 @@ export const createReview = async (data: {
   return API.post('/reviews', data);
 };
 
+export const updateReview = async (
+  reviewId: string,
+  data: {
+    rating: number;
+    comment: string;
+    images: string[];
+  },
+) => {
+  return API.patch(`/reviews/${reviewId}`, data);
+};
+
 export const getNotifications = async () => {
   return API.get('/notifications');
 };
@@ -218,6 +229,16 @@ export const getRecommendations = async (data: {
     'https://iloveuhiuhiu-danang-food-recsys.hf.space/api/v1/recommend',
     data,
   );
+};
+
+export const deleteReview = async (reviewId: string) => {
+  try {
+    const response = await API.delete(`/reviews/${reviewId}`);
+    return response;
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    throw error;
+  }
 };
 
 export default API;

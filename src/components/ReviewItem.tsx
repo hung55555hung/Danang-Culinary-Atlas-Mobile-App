@@ -4,9 +4,12 @@ import styles from '../styles/ShopDetailStyles';
 import { handleImagePreview } from '../utils/imagePreview';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { deleteReview } from '../api/apiConfig';
+import { Alert } from 'react-native';
 
 interface ReviewItemProps {
   item: {
+    reviewId: string;
     reviewerAccountId: string;
     reviewerUsername: string;
     avatar: '../assets/avt_default.jpg';
@@ -16,9 +19,10 @@ interface ReviewItemProps {
     images?: any;
     comment: string;
   };
+  restaurantId: string;
 }
 
-export default function ReviewItem({ item }: ReviewItemProps) {
+export default function ReviewItem({ item, restaurantId }: ReviewItemProps) {
   const navigation = useNavigation<any>();
   const [menuVisible, setMenuVisible] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
@@ -29,6 +33,17 @@ export default function ReviewItem({ item }: ReviewItemProps) {
     };
     checkOwner();
   }, [item.reviewerAccountId]);
+
+  const handleDeleteReview = async (reviewId: string) => {
+    try {
+      const response = await deleteReview(reviewId);
+      Alert.alert('Review deleted successfully');
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      Alert.alert('Failed to delete review. Please try again.');
+    }
+  };
+
   return (
     <View>
       <View
@@ -103,7 +118,13 @@ export default function ReviewItem({ item }: ReviewItemProps) {
                     }}
                     onPress={() => {
                       setMenuVisible(false);
-                      // TODO: logic sửa review
+                      navigation.navigate('EditReview', {
+                        reviewId: item.reviewId,
+                        restaurantId: restaurantId,
+                        currentRating: item.rating,
+                        currentComment: item.comment,
+                        currentImages: item.images || [],
+                      });
                     }}
                   >
                     <Image
@@ -125,7 +146,7 @@ export default function ReviewItem({ item }: ReviewItemProps) {
                     }}
                     onPress={() => {
                       setMenuVisible(false);
-                      // TODO: logic xóa review
+                      handleDeleteReview(item.reviewId);
                     }}
                   >
                     <Image
