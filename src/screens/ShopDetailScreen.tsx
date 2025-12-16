@@ -49,7 +49,28 @@ export default function RestaurantDetailScreen() {
   const [reportLoading, setReportLoading] = useState(false);
   const [restaurantTags, setRestaurantTags] = useState<any[]>([]);
   const [tagsLoading, setTagsLoading] = useState(false);
+  const [localReviews, setLocalReviews] = useState<any[]>([]);
   console.log('Reviews:', reviews);
+
+  // Sync reviews to local state
+  useEffect(() => {
+    setLocalReviews(reviews);
+  }, [reviews]);
+
+  // Function to update review with vendor reply
+  const updateReviewWithReply = (
+    reviewId: string,
+    vendorReply: string,
+    repliedAt: string,
+  ) => {
+    setLocalReviews(prev =>
+      prev.map(review =>
+        review.reviewId === reviewId
+          ? { ...review, vendorReply, repliedAt }
+          : review,
+      ),
+    );
+  };
 
   // 🔹 Fetch chi tiết nhà hàng khi cần (từ MapScreen hoặc không có item)
   useEffect(() => {
@@ -64,7 +85,7 @@ export default function RestaurantDetailScreen() {
           console.log('🔄 Đang fetch chi tiết nhà hàng:', currentRestaurantId);
           const response = await getRestaurantById(currentRestaurantId);
           setRestaurantDetail(response.data);
-          console.log('✅ Đã tải chi tiết nhà hàng:', response.data.name);
+          console.log('✅ Đã tải chi tiết nhà hàng:', response.data);
         } catch (err) {
           console.error('❌ Lỗi khi tải chi tiết nhà hàng:', err);
           Alert.alert(
@@ -399,7 +420,7 @@ export default function RestaurantDetailScreen() {
         ref={flatListRef}
         testID="reviews-list"
         accessibilityLabel="reviews-list"
-        data={loading ? [] : reviews}
+        data={loading ? [] : localReviews}
         keyExtractor={item => item.reviewId}
         renderItem={({ item, index }) => (
           <View
@@ -411,6 +432,8 @@ export default function RestaurantDetailScreen() {
               item={item}
               restaurantId={currentRestaurantId}
               onReviewDeleted={removeReview}
+              restaurantOwnerAccountId={restaurantDetail?.ownerAccountId}
+              onReplySuccess={updateReviewWithReply}
             />
           </View>
         )}

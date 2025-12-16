@@ -241,4 +241,16 @@ export const deleteReview = async (reviewId: string) => {
   }
 };
 
+export const replyToReview = async (reviewId: string, vendorReply: string) => {
+  try {
+    const response = await API.post(`/reviews/${reviewId}/reply`, {
+      vendorReply,
+    });
+    return response;
+  } catch (error) {
+    console.error('Error replying to review:', error);
+    throw error;
+  }
+};
+
 export default API;
