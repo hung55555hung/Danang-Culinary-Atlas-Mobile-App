@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">FoodMapApp</string>
     <string name="mapbox_access_token">
-        pk.eyJ1IjoiaHVuZzA1NDcyNCIsImEiOiJjbWl5bHk3eWIwaHJoM2dweXBxMGcwMm10In0.gXxq4YOgffAD8vV7y6nSxA</string>
+        your_mapbox_access_token_here</string>
 </resources>
