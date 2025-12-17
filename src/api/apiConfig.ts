@@ -253,4 +253,32 @@ export const replyToReview = async (reviewId: string, vendorReply: string) => {
   }
 };
 
+export const searchRestaurantsUnified = async (params: {
+  keyword?: string;
+  dishName?: string;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
+}) => {
+  const {
+    keyword = '',
+    dishName = '',
+    page = 0,
+    size = 10,
+    sortBy = 'createdAt',
+    sortDirection = 'desc',
+  } = params;
+
+  const queryParams = new URLSearchParams();
+  if (keyword) queryParams.append('keyword', keyword);
+  if (dishName) queryParams.append('dishName', dishName);
+  queryParams.append('page', page.toString());
+  queryParams.append('size', size.toString());
+  queryParams.append('sortBy', sortBy);
+  queryParams.append('sortDirection', sortDirection);
+
+  return API.get(`/restaurants/search_unified?${queryParams.toString()}`);
+};
+
 export default API;

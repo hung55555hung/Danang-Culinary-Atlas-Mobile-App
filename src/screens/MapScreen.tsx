@@ -31,6 +31,7 @@ import {
   getRestaurants,
   getRestaurantDetail,
   getRestaurantById,
+  searchRestaurantsUnified,
 } from '../api/apiConfig';
 import { useFocusEffect } from '@react-navigation/native';
 import debounce from 'lodash/debounce';
@@ -76,9 +77,11 @@ const MapScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentZoom, setCurrentZoom] = useState<number>(12);
   const [searchText, setSearchText] = useState('');
+  const [dishSearchText, setDishSearchText] = useState('');
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(
     [],
   );
+  const [isSearching, setIsSearching] = useState(false);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
     null,
   );
@@ -300,18 +303,61 @@ const MapScreen: React.FC = () => {
     }
   };
 
-  // Cập nhật filteredRestaurants khi searchText hoặc restaurants thay đổi
+  // Cập nhật filteredRestaurants khi searchText hoặc dishSearchText thay đổi
+  const searchRestaurants = useCallback(
+    debounce(async (keyword: string, dishName: string) => {
+      // Nếu không có từ khóa tìm kiếm, hiển thị tất cả restaurants
+      if (!keyword.trim() && !dishName.trim()) {
+        setFilteredRestaurants(restaurants);
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        console.log(
+          '🔍 Searching with keyword:',
+          keyword,
+          'dishName:',
+          dishName,
+        );
+        const res = await searchRestaurantsUnified({
+          keyword: keyword.trim(),
+          dishName: dishName.trim(),
+          page: 0,
+          size: 50,
+          sortBy: 'createdAt',
+          sortDirection: 'desc',
+        });
+
+        console.log('📍 Search results:', res.data);
+
+        // Lọc restaurants có tọa độ hợp lệ
+        const validRestaurants = (res.data?.content || []).filter(
+          (item: Restaurant) => {
+            const isValid =
+              item.latitude &&
+              item.longitude &&
+              item.latitude !== 0 &&
+              item.longitude !== 0;
+            return isValid;
+          },
+        );
+
+        setFilteredRestaurants(validRestaurants);
+      } catch (err) {
+        console.error('❌ Lỗi khi tìm kiếm:', err);
+        setFilteredRestaurants([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500),
+    [restaurants],
+  );
+
   useEffect(() => {
-    if (!searchText.trim()) {
-      setFilteredRestaurants(restaurants);
-    } else {
-      setFilteredRestaurants(
-        restaurants.filter(r =>
-          r.name.toLowerCase().includes(searchText.trim().toLowerCase()),
-        ),
-      );
-    }
-  }, [searchText, restaurants]);
+    searchRestaurants(searchText, dishSearchText);
+  }, [searchText, dishSearchText]);
 
   // 📊 Fetch thông tin các restaurants được recommend
   useEffect(() => {
@@ -552,15 +598,27 @@ const MapScreen: React.FC = () => {
               accessibilityLabel="gps-icon"
             />
 
-            <TextInput
-              testID="search-input"
-              accessibilityLabel="search-input"
-              placeholder="Tìm kiếm ở đây"
-              placeholderTextColor="#555"
-              style={styles.searchInput}
-              value={searchText}
-              onChangeText={setSearchText}
-            />
+            <View style={{ flex: 1, flexDirection: 'column', gap: 4 }}>
+              <TextInput
+                testID="search-input"
+                accessibilityLabel="search-input"
+                placeholder="Tìm kiếm tên quán ăn"
+                placeholderTextColor="#555"
+                style={[styles.searchInput, { marginBottom: 0 }]}
+                value={searchText}
+                onChangeText={setSearchText}
+              />
+
+              {/* <TextInput
+                testID="dish-search-input"
+                accessibilityLabel="dish-search-input"
+                placeholder="Tìm kiếm tên món ăn"
+                placeholderTextColor="#555"
+                style={[styles.searchInput, { marginBottom: 0 }]}
+                value={dishSearchText}
+                onChangeText={setDishSearchText}
+              /> */}
+            </View>
 
             <TouchableOpacity
               testID="button-avt"
@@ -584,9 +642,16 @@ const MapScreen: React.FC = () => {
         </View>
 
         {/* Search Results */}
-        {searchText.length > 0 && (
+        {(searchText.length > 0 || dishSearchText.length > 0) && (
           <View style={styles.listSearch}>
-            {filteredRestaurants.length === 0 ? (
+            {isSearching ? (
+              <View style={{ padding: 12, alignItems: 'center' }}>
+                <ActivityIndicator size="small" color="#FF6347" />
+                <Text style={{ marginTop: 8, color: '#888' }}>
+                  Đang tìm kiếm...
+                </Text>
+              </View>
+            ) : filteredRestaurants.length === 0 ? (
               <Text style={{ padding: 12, color: '#888' }}>
                 Không tìm thấy quán nào
               </Text>
@@ -601,6 +666,7 @@ const MapScreen: React.FC = () => {
                   }}
                   onPress={async () => {
                     setSearchText('');
+                    setDishSearchText('');
                     // Fly to location
                     cameraRef.current?.setCamera({
                       centerCoordinate: [item.longitude, item.latitude],

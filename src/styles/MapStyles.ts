@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 24,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
     elevation: 3,
     shadowColor: '#000',
     shadowOpacity: 0.08,
@@ -48,9 +48,10 @@ const styles = StyleSheet.create({
 
   searchInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 14,
     color: '#222',
-    paddingVertical: 0,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
   },
 
   avatar: {
