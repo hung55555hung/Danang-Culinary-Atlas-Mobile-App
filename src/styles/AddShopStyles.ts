@@ -68,6 +68,28 @@ const styles = StyleSheet.create({
     color: '#666',
     flexShrink: 1,
   },
+  licenseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#E8F4F8',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#0C516F',
+  },
+  licenseIcon: {
+    width: 16,
+    height: 16,
+    tintColor: '#0C516F',
+    marginRight: 6,
+  },
+  licenseButtonText: {
+    fontSize: 13,
+    color: '#0C516F',
+    fontWeight: '600',
+  },
   addButton: {
     backgroundColor: '#0C516F',
     borderRadius: 8,

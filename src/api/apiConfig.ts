@@ -281,4 +281,16 @@ export const searchRestaurantsUnified = async (params: {
   return API.get(`/restaurants/search_unified?${queryParams.toString()}`);
 };
 
+// Upload giấy phép kinh doanh
+export const uploadLicense = async (data: {
+  restaurantId: string;
+  licenseType: string;
+  licenseNumber: string;
+  issueDate: string;
+  expireDate: string;
+  documentUrl: string;
+}) => {
+  return API.post('/licenses', data);
+};
+
 export default API;

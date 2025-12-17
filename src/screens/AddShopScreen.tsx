@@ -14,6 +14,7 @@ import styles from '../styles/AddShopStyles';
 import Header from '../components/Header';
 import { getVendorRestaurants, deleteRestaurant } from '../api/apiConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import UploadLicenseModal from '../components/UploadLicenseModal';
 
 const AddShopScreen = () => {
   const navigation = useNavigation<any>();
@@ -22,6 +23,8 @@ const AddShopScreen = () => {
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [selectedShop, setSelectedShop] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [licenseModalVisible, setLicenseModalVisible] = useState(false);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
 
   useEffect(() => {
     const fetchVendorIdAndShops = async () => {
@@ -149,6 +152,20 @@ const AddShopScreen = () => {
             <Text style={styles.shopAddress}>{item.address}</Text>
           </View>
         </TouchableOpacity>
+        {/* Button Thêm ảnh giấy phép */}
+        <TouchableOpacity
+          style={styles.licenseButton}
+          onPress={() => {
+            setSelectedRestaurant(item);
+            setLicenseModalVisible(true);
+          }}
+        >
+          <Image
+            source={require('../assets/add_image.png')}
+            style={styles.licenseIcon}
+          />
+          <Text style={styles.licenseButtonText}>Thêm ảnh giấy phép</Text>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -250,6 +267,19 @@ const AddShopScreen = () => {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* Modal Upload License */}
+      {selectedRestaurant && (
+        <UploadLicenseModal
+          visible={licenseModalVisible}
+          onClose={() => {
+            setLicenseModalVisible(false);
+            setSelectedRestaurant(null);
+          }}
+          restaurantId={selectedRestaurant.restaurantId}
+          restaurantName={selectedRestaurant.name}
+        />
+      )}
 
       {/* Button Thêm quán mới */}
       <TouchableOpacity
