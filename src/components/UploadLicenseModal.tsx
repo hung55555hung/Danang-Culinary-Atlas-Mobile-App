@@ -19,15 +19,11 @@ import { uploadLicense } from '../api/apiConfig';
 interface UploadLicenseModalProps {
   visible: boolean;
   onClose: () => void;
-  restaurantId: string;
-  restaurantName: string;
 }
 
 const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
   visible,
   onClose,
-  restaurantId,
-  restaurantName,
 }) => {
   const [licenseType, setLicenseType] = useState('BUSINESS_REGISTRATION');
   const [licenseNumber, setLicenseNumber] = useState('');
@@ -110,7 +106,6 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
 
       // 2. Gọi API để lưu thông tin giấy phép
       await uploadLicense({
-        restaurantId,
         licenseType,
         licenseNumber,
         issueDate: formatDate(issueDate),
@@ -158,20 +153,11 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
               style={{
                 fontSize: 18,
                 fontWeight: 'bold',
-                marginBottom: 8,
+                marginBottom: 16,
                 color: '#333',
               }}
             >
-              Thêm giấy phép
-            </Text>
-            <Text
-              style={{
-                fontSize: 14,
-                color: '#666',
-                marginBottom: 16,
-              }}
-            >
-              Quán: {restaurantName}
+              Thêm giấy phép kinh doanh
             </Text>
 
             {/* Loại giấy phép */}

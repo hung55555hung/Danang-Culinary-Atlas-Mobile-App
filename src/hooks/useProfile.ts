@@ -108,7 +108,7 @@ import { getUserProfile, updateUserProfile } from '../api/apiConfig';
 
 export interface Profile {
   name: string;
-  avatarUrl: any;
+  avatarUrl: string | null; // null nếu chưa có avatar
   dob: Date | null;
   phone: string;
   gender: string;
@@ -121,7 +121,7 @@ export const useProfile = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile>({
     name: '',
-    avatarUrl: require('../assets/avt_default.jpg'),
+    avatarUrl: null, // null nếu chưa có avatar
     dob: null,
     phone: '',
     gender: '',
@@ -136,18 +136,35 @@ export const useProfile = () => {
         const response = await getUserProfile();
         const user = response.data.data;
 
+        // Xử lý avatarUrl: null nếu không có, string nếu có URL
+        let avatarUrl: string | null = null;
+        if (
+          user.avatarUrl &&
+          typeof user.avatarUrl === 'string' &&
+          user.avatarUrl !== 'string' &&
+          user.avatarUrl.trim() !== ''
+        ) {
+          avatarUrl = user.avatarUrl;
+        }
+
         setProfile({
           name: user.fullName || '',
-          avatarUrl:
-            user.avatarUrl && user.avatarUrl !== 'string'
-              ? { uri: user.avatarUrl }
-              : require('../assets/avt_default.jpg'),
+          avatarUrl: avatarUrl, // null hoặc URL string
           dob: user.dob ? new Date(user.dob) : null,
           phone: /^[0-9]/.test(user.phone) ? user.phone : '',
           gender: user.gender || '',
           email: user.email || '',
           password: '********',
           confirmPassword: '********',
+        });
+
+        console.log('Profile loaded:', {
+          name: user.fullName || '',
+          avatarUrl: avatarUrl,
+          dob: user.dob,
+          phone: user.phone,
+          gender: user.gender,
+          email: user.email,
         });
       } catch (error) {
         console.error('Lỗi khi lấy profile:', error);
@@ -197,10 +214,7 @@ export const useProfile = () => {
     try {
       const payload = {
         fullName: profile.name,
-        avatarUrl:
-          typeof profile.avatarUrl === 'string'
-            ? profile.avatarUrl
-            : profile.avatarUrl?.uri || 'string',
+        avatarUrl: profile.avatarUrl || undefined, // Chỉ gửi nếu có URL
         dob: profile.dob ? profile.dob.toISOString().split('T')[0] : null,
         phone: profile.phone,
         gender: profile.gender,

@@ -35,8 +35,15 @@ export default function RestaurantDetailScreen() {
     route.params || {};
   const flatListRef = useRef<FlatList<any>>(null);
   const currentRestaurantId = item ? item.restaurantId : restaurantId;
-  const { reviews, loading, error, removeReview } =
-    useRestaurantReviews(currentRestaurantId);
+  const {
+    reviews,
+    loading,
+    loadingMore,
+    error,
+    removeReview,
+    loadMore,
+    hasMore,
+  } = useRestaurantReviews(currentRestaurantId);
   const [restaurantDetail, setRestaurantDetail] = useState<any>(item || null);
   const [loadingDetail, setLoadingDetail] = useState(!item || needsFetchDetail);
   const { rating, setRating, foodImages } =
@@ -440,6 +447,18 @@ export default function RestaurantDetailScreen() {
         ItemSeparatorComponent={() => <View style={styles.reviewSeparator} />}
         scrollEnabled={false}
         contentContainerStyle={styles.reviewListContent}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color="#0C516F" />
+              <Text style={{ marginTop: 8, color: '#666', fontSize: 13 }}>
+                Đang tải thêm đánh giá...
+              </Text>
+            </View>
+          ) : null
+        }
       />
 
       {/* Modal hiển thị menu món ăn */}

@@ -39,12 +39,10 @@ export default function ProfileScreen() {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   useEffect(() => {
-    const avatarUri =
-      typeof profile.avatarUrl === 'string'
-        ? profile.avatarUrl
-        : profile.avatarUrl?.uri;
-    if (avatarUri) {
-      setInitialImage(avatarUri);
+    console.log('Profile loaded:', profile);
+    // avatarUrl giờ luôn là string
+    if (profile.avatarUrl) {
+      setInitialImage(profile.avatarUrl);
     }
   }, [profile.avatarUrl]);
 
@@ -63,9 +61,9 @@ export default function ProfileScreen() {
   // Lưu thông tin + cập nhật avatar nếu cần
   const onSavePersonal = async () => {
     try {
-      let avatarUrl = profile.avatarUrl as string | undefined;
+      let avatarUrl: string | null = null;
 
-      // Ưu tiên ảnh mới chọn
+      // Chỉ upload nếu có chọn ảnh mới
       const selected = localImages[0];
       if (selected) {
         if (selected.startsWith('http')) {
@@ -77,10 +75,11 @@ export default function ProfileScreen() {
           avatarUrl = await uploadSingleImage();
         }
       }
+      // Nếu không chọn ảnh mới, avatarUrl = null
 
-      const payload = {
+      const payload: any = {
         fullName: profile.name,
-        avatarUrl: avatarUrl || undefined,
+        avatarUrl: avatarUrl, // null nếu không chọn ảnh mới
         dob: profile.dob ? profile.dob.toISOString().split('T')[0] : null,
         phone: profile.phone,
         gender: profile.gender,
@@ -88,9 +87,12 @@ export default function ProfileScreen() {
 
       await updateUserProfile(payload);
 
+      // Cập nhật local state với giá trị mới (có thể là null)
+      setProfile(prev => ({ ...prev, avatarUrl }));
       if (avatarUrl) {
-        setProfile(prev => ({ ...prev, avatarUrl })); // luôn lưu string
         await AsyncStorage.setItem('avatarUrl', avatarUrl);
+      } else {
+        await AsyncStorage.removeItem('avatarUrl');
       }
 
       Alert.alert('✅ Thành công', 'Cập nhật thông tin cá nhân thành công!');
@@ -177,9 +179,7 @@ export default function ProfileScreen() {
       >
         <TouchableOpacity
           onPress={() => {
-            const uri =
-              localImages[0] ||
-              (typeof profile.avatarUrl === 'string' ? profile.avatarUrl : '');
+            const uri = localImages[0] || profile.avatarUrl;
             if (uri) handleImagePreview(navigation, uri, [uri]);
           }}
           testID="profile-avatar-image"
@@ -189,10 +189,8 @@ export default function ProfileScreen() {
             source={
               localImages[0]
                 ? { uri: localImages[0] }
-                : typeof profile.avatarUrl === 'string' && profile.avatarUrl
+                : profile.avatarUrl
                 ? { uri: profile.avatarUrl }
-                : profile.avatarUrl?.uri // ✅ Thêm fallback cho object
-                ? { uri: profile.avatarUrl.uri }
                 : require('../assets/avt_default.jpg')
             }
             style={styles.avatar}

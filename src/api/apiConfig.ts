@@ -57,7 +57,7 @@ export const updateUserProfile = async (data: {
   gender?: string;
 }) => {
   console.log('Cập nhật thông tin cá nhân với payload:', data);
-  return API.put(`/profile/${await getRole()}`, data);
+  return API.patch(`/profile/${await getRole()}`, data);
 };
 
 export const getRestaurants = async (zoomLevel: number) => {
@@ -148,7 +148,7 @@ export const changePassword = async (payload: {
   newPassword: string;
   confirmPassword: string;
 }) => {
-  const response = await API.put('/auth/change-password', payload);
+  const response = await API.patch('/auth/change-password', payload);
   return response.data;
 };
 
@@ -281,9 +281,14 @@ export const searchRestaurantsUnified = async (params: {
   return API.get(`/restaurants/search_unified?${queryParams.toString()}`);
 };
 
+// Lấy thông tin giấy phép của vendor
+export const getMyLicenses = async () => {
+  const response = await API.get('/licenses/me');
+  return response.data;
+};
+
 // Upload giấy phép kinh doanh
 export const uploadLicense = async (data: {
-  restaurantId: string;
   licenseType: string;
   licenseNumber: string;
   issueDate: string;
