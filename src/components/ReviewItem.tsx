@@ -12,7 +12,7 @@ import styles from '../styles/ShopDetailStyles';
 import { handleImagePreview } from '../utils/imagePreview';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { deleteReview, replyToReview } from '../api/apiConfig';
+import { deleteReview, replyToReview, createReport } from '../api/apiConfig';
 import { Alert } from 'react-native';
 import { formatTimeAgo } from '../utils/time';
 
@@ -55,6 +55,9 @@ export default function ReviewItem({
   const [replyMode, setReplyMode] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [replyLoading, setReplyLoading] = useState(false);
+  const [reportVisible, setReportVisible] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
   useEffect(() => {
     const checkOwner = async () => {
       const accountID = await AsyncStorage.getItem('accountID');
@@ -127,6 +130,40 @@ export default function ReviewItem({
     } finally {
       setReplyLoading(false);
     }
+  };
+
+  const handleSubmitReport = async () => {
+    if (!reportReason.trim()) {
+      Alert.alert('Thông báo', 'Vui lòng nhập lý do báo cáo');
+      return;
+    }
+
+    Alert.alert('Xác nhận', 'Bạn có chắc chắn muốn gửi báo cáo này?', [
+      {
+        text: 'Hủy',
+        style: 'cancel',
+      },
+      {
+        text: 'Xác nhận',
+        onPress: async () => {
+          setReportLoading(true);
+          try {
+            await createReport({
+              reviewId: item.reviewId,
+              reason: reportReason,
+            });
+            Alert.alert('Thành công', 'Đã gửi báo cáo thành công');
+            setReportVisible(false);
+            setReportReason('');
+          } catch (error) {
+            console.error('Lỗi khi gửi báo cáo:', error);
+            Alert.alert('Lỗi', 'Không thể gửi báo cáo. Vui lòng thử lại');
+          } finally {
+            setReportLoading(false);
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -269,7 +306,7 @@ export default function ReviewItem({
                   }}
                   onPress={() => {
                     setMenuVisible(false);
-                    // TODO: logic báo cáo vi phạm
+                    setReportVisible(true);
                   }}
                 >
                   <Image
@@ -467,6 +504,123 @@ export default function ReviewItem({
           </Text>
         </View>
       )}
+
+      {/* Modal Report */}
+      <Modal
+        visible={reportVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setReportVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              padding: 20,
+              width: '85%',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: 'bold',
+                marginBottom: 15,
+                textAlign: 'center',
+              }}
+            >
+              Báo cáo đánh giá
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: '#666',
+                marginBottom: 10,
+              }}
+            >
+              Lý do báo cáo:
+            </Text>
+            <TextInput
+              style={{
+                borderWidth: 1,
+                borderColor: '#ccc',
+                borderRadius: 8,
+                padding: 12,
+                minHeight: 100,
+                textAlignVertical: 'top',
+                marginBottom: 20,
+              }}
+              placeholder="Nhập lý do báo cáo..."
+              value={reportReason}
+              onChangeText={setReportReason}
+              multiline
+              editable={!reportLoading}
+            />
+            <View
+              style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+            >
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: '#ccc',
+                  padding: 12,
+                  borderRadius: 8,
+                  marginRight: 10,
+                }}
+                onPress={() => {
+                  setReportVisible(false);
+                  setReportReason('');
+                }}
+                disabled={reportLoading}
+              >
+                <Text
+                  style={{
+                    color: '#333',
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                  }}
+                >
+                  Hủy
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: '#FF3B30',
+                  padding: 12,
+                  borderRadius: 8,
+                  marginLeft: 10,
+                }}
+                onPress={handleSubmitReport}
+                disabled={reportLoading}
+              >
+                {reportLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text
+                    style={{
+                      color: '#fff',
+                      fontSize: 16,
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                    }}
+                  >
+                    Gửi báo cáo
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

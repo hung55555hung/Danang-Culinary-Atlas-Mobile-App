@@ -12,9 +12,19 @@
 -check api edit nhà hàng
 -check api get nhà hàng(tag trả về null mặt dù trong db có)
 
+
 - việc còn lại:
-+ edit comment(done), delete comment
-+ check nếu vendor thì khóa click comment(done)
++edit comment(done), delete comment(done)
++check nếu vendor thì khóa click comment(done)
 +check api:/api/v1/tags/restaurant/{restaurantId} tại sao user call k đc
 +fix hiển thị sao lẻ(vs 4.5 sao)
-+create reply nếu tài khoản là vendor và restaurant đó thuộc vendor
++create reply nếu tài khoản là vendor và restaurant đó thuộc vendor(done)
++fix cập nhật món ăn(done)
+
+
+-việc ngày mai phải done
++report review(done)
++sửa lại logic search
++upload giấy phép kinh doanh
++tạo icon hiển thị app
++loadmore cho review

@@ -198,7 +198,7 @@ export const updateDish = async (
   },
 ) => {
   console.log('Updating dish with data:', data);
-  const res = await API.put(`/dishes/${dishId}`, data);
+  const res = await API.patch(`/dishes/${dishId}`, data);
   return res.data;
 };
 
@@ -211,7 +211,7 @@ export const resetPassword = async (data: {
 };
 
 export const createReport = async (data: {
-  restaurantId: string;
+  restaurantId?: string;
   dishId?: string;
   reviewId?: string;
   reason: string;
