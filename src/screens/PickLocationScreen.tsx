@@ -9,6 +9,7 @@ export default function PickLocationScreen() {
     longitude: number;
   } | null>(null);
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
 
   const handlePress = (event: MapPressEvent) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
@@ -17,7 +18,12 @@ export default function PickLocationScreen() {
 
   const handleConfirm = () => {
     if (marker) {
-      navigation.navigate('RegisterShop', { location: marker });
+      // Giữ lại formData và locationData từ params trước đó khi navigate về
+      navigation.navigate('RegisterShop', {
+        location: marker,
+        formData: route.params?.formData, // Truyền lại formData
+        locationData: route.params?.locationData, // Truyền lại locationData
+      });
     }
   };
 

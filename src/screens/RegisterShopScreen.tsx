@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,14 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import styles from '../styles/RegisterShopStyles';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Header from '../components/Header';
 import { useLocation } from '../hooks/useLocation';
 import { useRegisterShop } from '../hooks/useRegisterShop';
 
 export default function RegisterShopScreen() {
   const navigate = useNavigation<any>();
+  const route = useRoute<any>();
   const { cities, districts, wards, fetchDistricts, fetchWards } =
     useLocation();
   const {
@@ -32,7 +33,9 @@ export default function RegisterShopScreen() {
     wardId,
     setWardId,
     latitude,
+    setLatitude,
     longitude,
+    setLongitude,
     handleSubmit,
     handleAddPhoto,
     localImages,
@@ -52,6 +55,48 @@ export default function RegisterShopScreen() {
   const [modalType, setModalType] = useState<'city' | 'district' | 'ward'>(
     'city',
   );
+
+  // Khôi phục city, district, ward từ route params nếu có
+  useEffect(() => {
+    if (route.params?.locationData) {
+      const {
+        city: savedCity,
+        district: savedDistrict,
+        ward: savedWard,
+      } = route.params.locationData;
+      if (savedCity) {
+        setCity(savedCity);
+        fetchDistricts(savedCity.code);
+      }
+      if (savedDistrict) {
+        setDistrict(savedDistrict);
+        fetchWards(savedDistrict.code);
+      }
+      if (savedWard) {
+        setWard(savedWard);
+      }
+    }
+  }, [route.params?.locationData]);
+
+  // Hàm để navigate đến màn hình chọn vị trí và lưu form data
+  const handlePickLocation = () => {
+    // Lưu tất cả form data vào params trước khi navigate
+    navigate.navigate('PickLocation', {
+      formData: {
+        name,
+        address,
+        openingHours,
+        wardId,
+        selectedTags,
+        localImages,
+      },
+      locationData: {
+        city,
+        district,
+        ward,
+      },
+    });
+  };
 
   const handleSelectCity = (item: any) => {
     setCity(item);
@@ -185,7 +230,7 @@ export default function RegisterShopScreen() {
         {/* Nút chọn vị trí */}
         <TouchableOpacity
           style={styles.dropdown}
-          onPress={() => navigate.navigate('PickLocation')}
+          onPress={handlePickLocation}
           testID="btn-pick-location"
           accessibilityLabel="btn-pick-location"
         >

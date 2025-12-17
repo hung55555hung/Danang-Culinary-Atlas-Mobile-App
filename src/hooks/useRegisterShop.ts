@@ -92,11 +92,13 @@ export const useRegisterShop = () => {
   const [wardId, setWardId] = useState<any>(null);
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   const {
     handleAddPhoto,
     uploadAllImages,
     localImages,
+    setLocalImages,
     removeImage,
     uploading,
   } = useImagePicker('multiple');
@@ -104,16 +106,35 @@ export const useRegisterShop = () => {
   const {
     tags,
     selectedTags,
+    setSelectedTags,
     loading: tagsLoading,
     toggleTag,
     isTagSelected,
   } = useRestaurantTags();
 
+  // Khôi phục state từ route params khi component mount lại
   useEffect(() => {
-    if (route.params?.location) {
-      setLatitude(route.params.location.latitude);
-      setLongitude(route.params.location.longitude);
+    if (!initialized && route.params) {
+      // Khôi phục location nếu có
+      if (route.params?.location) {
+        setLatitude(route.params.location.latitude);
+        setLongitude(route.params.location.longitude);
+      }
+
+      // Khôi phục các field khác nếu có
+      if (route.params?.formData) {
+        const formData = route.params.formData;
+        if (formData.name) setName(formData.name);
+        if (formData.address) setAddress(formData.address);
+        if (formData.openingHours) setOpeningHours(formData.openingHours);
+        if (formData.wardId) setWardId(formData.wardId);
+        if (formData.selectedTags) setSelectedTags(formData.selectedTags);
+        if (formData.localImages) setLocalImages(formData.localImages);
+      }
+
+      setInitialized(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route.params]);
 
   const addOpeningHour = () => {
@@ -221,7 +242,9 @@ export const useRegisterShop = () => {
     wardId,
     setWardId,
     latitude,
+    setLatitude,
     longitude,
+    setLongitude,
     handleSubmit,
     handleAddPhoto,
     localImages,

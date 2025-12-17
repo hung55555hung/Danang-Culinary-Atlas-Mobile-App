@@ -5,24 +5,6 @@ export default StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 25,
-    marginTop: 20,
-  },
-  backArrow: {
-    width: 24,
-    height: 24,
-    fontSize: 24,
-    color: '#115e73',
-    marginRight: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#115e73',
-  },
   dropdown: {
     borderWidth: 1,
     borderColor: '#999',
@@ -191,5 +173,23 @@ export default StyleSheet.create({
     color: '#115e73',
     fontSize: 15,
     fontWeight: '500',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 25,
+  },
+  backArrow: {
+    width: 30,
+    height: 25,
+    tintColor: '#fff',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginLeft: 5,
+    flex: 1,
+    textAlign: 'center',
   },
 });
