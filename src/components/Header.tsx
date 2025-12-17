@@ -7,19 +7,29 @@ interface HeaderProps {
   title: string;
   showBack?: boolean;
   color?: string;
+  onBack?: () => void;
 }
 
-export default function Header({ title, showBack = true, color }: HeaderProps) {
+export default function Header({
+  title,
+  showBack = true,
+  color,
+  onBack,
+}: HeaderProps) {
   const navigation = useNavigation<any>();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigation.goBack();
+    }
+  };
 
   return (
     <View style={styles.header}>
       {showBack ? (
-        <TouchableOpacity
-          onPress={() => {
-            navigation.goBack();
-          }}
-        >
+        <TouchableOpacity onPress={handleBack}>
           <Image
             source={require('../assets/icon_back.png')}
             style={[

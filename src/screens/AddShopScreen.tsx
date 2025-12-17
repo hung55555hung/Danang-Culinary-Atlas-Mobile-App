@@ -188,7 +188,11 @@ const AddShopScreen = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Header title="Đăng ký quán" showBack={true} />
+      <Header
+        title="Đăng ký quán"
+        showBack={true}
+        onBack={() => navigation.navigate('Drawer')}
+      />
 
       {/* Danh sách quán đã đăng ký */}
       <Text style={styles.sectionTitle}>Quán đã đăng ký</Text>
