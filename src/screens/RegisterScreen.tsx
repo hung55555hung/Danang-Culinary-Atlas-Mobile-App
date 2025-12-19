@@ -30,7 +30,6 @@ export default function RegisterScreen({ navigation }: any) {
   const roles = [
     { label: 'Người dùng', value: 'USER' },
     { label: 'Chủ quán', value: 'VENDOR' },
-    { label: 'Quản trị viên', value: 'ADMIN' },
   ];
 
   // Hàm xử lý đăng ký
@@ -177,11 +176,7 @@ export default function RegisterScreen({ navigation }: any) {
                 onPress={() => setModalVisible(true)}
               >
                 <Text style={{ color: '#333', fontSize: 16 }}>
-                  {role === 'USER'
-                    ? 'Người dùng'
-                    : role === 'VENDOR'
-                    ? 'Chủ quán'
-                    : 'Quản trị viên'}
+                  {role === 'USER' ? 'Người dùng' : 'Chủ quán'}
                 </Text>
                 <Image
                   source={require('../assets/drop_d.png')}
