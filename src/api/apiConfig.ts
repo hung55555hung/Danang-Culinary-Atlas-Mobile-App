@@ -318,7 +318,12 @@ export const updateLicense = async (
     documentUrl: string;
   },
 ) => {
-  return API.put(`/licenses/${licenseId}`, data);
+  return API.patch(`/licenses/${licenseId}`, data);
+};
+
+// Xóa giấy phép
+export const deleteLicense = async (licenseId: string) => {
+  return API.delete(`/licenses/${licenseId}`);
 };
 
 export default API;

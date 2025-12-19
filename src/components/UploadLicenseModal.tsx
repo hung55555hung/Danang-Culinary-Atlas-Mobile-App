@@ -20,6 +20,7 @@ interface UploadLicenseModalProps {
   visible: boolean;
   onClose: () => void;
   restaurantId: string;
+  initialLicenseType?: string;
   existingLicense?: {
     licenseId: string;
     licenseType: string;
@@ -34,6 +35,7 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
   visible,
   onClose,
   restaurantId,
+  initialLicenseType = 'BUSINESS_REGISTRATION',
   existingLicense,
 }) => {
   const [licenseType, setLicenseType] = useState('BUSINESS_REGISTRATION');
@@ -55,12 +57,17 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
       setExpireDate(new Date(existingLicense.expireDate));
       setImageUri(existingLicense.documentUrl);
     } else {
-      resetForm();
+      setLicenseType(initialLicenseType);
+      setLicenseNumber('');
+      setIssueDate(new Date());
+      setExpireDate(new Date());
+      setImageUri(null);
+      setImageBase64(null);
     }
-  }, [existingLicense, visible]);
+  }, [existingLicense, visible, initialLicenseType]);
 
   const resetForm = () => {
-    setLicenseType('BUSINESS_REGISTRATION');
+    setLicenseType(initialLicenseType);
     setLicenseNumber('');
     setIssueDate(new Date());
     setExpireDate(new Date());
@@ -222,10 +229,15 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
                   backgroundColor:
                     licenseType === 'BUSINESS_REGISTRATION'
                       ? '#E8F4F8'
+                      : existingLicense
+                      ? '#f5f5f5'
                       : '#fff',
                   marginRight: 8,
                 }}
-                onPress={() => setLicenseType('BUSINESS_REGISTRATION')}
+                onPress={() =>
+                  !existingLicense && setLicenseType('BUSINESS_REGISTRATION')
+                }
+                disabled={!!existingLicense}
               >
                 <Text
                   style={{
@@ -233,6 +245,8 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
                     color:
                       licenseType === 'BUSINESS_REGISTRATION'
                         ? '#0C516F'
+                        : existingLicense
+                        ? '#999'
                         : '#666',
                     fontWeight:
                       licenseType === 'BUSINESS_REGISTRATION'
@@ -250,18 +264,30 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
                   borderRadius: 8,
                   borderWidth: 1,
                   borderColor:
-                    licenseType === 'FOOD_SAFETY' ? '#0C516F' : '#ddd',
+                    licenseType === 'FOOD_SAFETY_CERT' ? '#0C516F' : '#ddd',
                   backgroundColor:
-                    licenseType === 'FOOD_SAFETY' ? '#E8F4F8' : '#fff',
+                    licenseType === 'FOOD_SAFETY_CERT'
+                      ? '#E8F4F8'
+                      : existingLicense
+                      ? '#f5f5f5'
+                      : '#fff',
                 }}
-                onPress={() => setLicenseType('FOOD_SAFETY')}
+                onPress={() =>
+                  !existingLicense && setLicenseType('FOOD_SAFETY_CERT')
+                }
+                disabled={!!existingLicense}
               >
                 <Text
                   style={{
                     textAlign: 'center',
-                    color: licenseType === 'FOOD_SAFETY' ? '#0C516F' : '#666',
+                    color:
+                      licenseType === 'FOOD_SAFETY_CERT'
+                        ? '#0C516F'
+                        : existingLicense
+                        ? '#999'
+                        : '#666',
                     fontWeight:
-                      licenseType === 'FOOD_SAFETY' ? 'bold' : 'normal',
+                      licenseType === 'FOOD_SAFETY_CERT' ? 'bold' : 'normal',
                   }}
                 >
                   ATTP

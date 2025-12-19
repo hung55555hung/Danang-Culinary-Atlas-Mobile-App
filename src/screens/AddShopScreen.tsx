@@ -16,9 +16,20 @@ import {
   getVendorRestaurants,
   deleteRestaurant,
   getRestaurantLicenses,
+  deleteLicense,
 } from '../api/apiConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UploadLicenseModal from '../components/UploadLicenseModal';
+
+interface LicenseInfo {
+  licenseId: string;
+  licenseType: string;
+  licenseNumber: string;
+  issueDate: string;
+  expireDate: string;
+  documentUrl: string;
+  approvalStatus: string;
+}
 
 interface ShopWithLicense {
   restaurantId: string;
@@ -26,15 +37,8 @@ interface ShopWithLicense {
   address: string;
   images: any;
   approvalStatus: string;
-  license?: {
-    licenseId: string;
-    licenseType: string;
-    licenseNumber: string;
-    issueDate: string;
-    expireDate: string;
-    documentUrl: string;
-    approvalStatus: string;
-  } | null;
+  businessLicense?: LicenseInfo | null;
+  foodSafetyLicense?: LicenseInfo | null;
 }
 
 const AddShopScreen = () => {
@@ -48,6 +52,9 @@ const AddShopScreen = () => {
   const [selectedRestaurantForLicense, setSelectedRestaurantForLicense] =
     useState<string | null>(null);
   const [existingLicense, setExistingLicense] = useState<any>(null);
+  const [selectedLicenseType, setSelectedLicenseType] = useState<string>(
+    'BUSINESS_REGISTRATION',
+  );
 
   useEffect(() => {
     fetchVendorIdAndShops();
@@ -71,16 +78,25 @@ const AddShopScreen = () => {
               const businessLicense = licenses.find(
                 (lic: any) => lic.licenseType === 'BUSINESS_REGISTRATION',
               );
+              // Tìm giấy phép an toàn vệ sinh thực phẩm (FOOD_SAFETY_CERT)
+              const foodSafetyLicense = licenses.find(
+                (lic: any) => lic.licenseType === 'FOOD_SAFETY_CERT',
+              );
               return {
                 ...shop,
-                license: businessLicense || null,
+                businessLicense: businessLicense || null,
+                foodSafetyLicense: foodSafetyLicense || null,
               };
             } catch (err) {
               console.error(
                 `Lỗi khi lấy license cho quán ${shop.restaurantId}:`,
                 err,
               );
-              return { ...shop, license: null };
+              return {
+                ...shop,
+                businessLicense: null,
+                foodSafetyLicense: null,
+              };
             }
           }),
         );
@@ -123,10 +139,43 @@ const AddShopScreen = () => {
     );
   };
 
-  const handleOpenLicenseModal = (restaurantId: string, license: any) => {
+  const handleOpenLicenseModal = (
+    restaurantId: string,
+    license: any,
+    licenseType: string,
+  ) => {
     setSelectedRestaurantForLicense(restaurantId);
     setExistingLicense(license);
+    setSelectedLicenseType(licenseType);
     setLicenseModalVisible(true);
+  };
+
+  const handleDeleteLicense = async (
+    licenseId: string,
+    licenseName: string,
+  ) => {
+    Alert.alert(
+      'Xác nhận',
+      `Bạn có chắc muốn xóa ${licenseName}?`,
+      [
+        { text: 'Hủy', style: 'cancel' },
+        {
+          text: 'Xóa',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteLicense(licenseId);
+              Alert.alert('Thành công', 'Đã xóa giấy phép!');
+              // Refresh danh sách quán để cập nhật
+              fetchVendorIdAndShops();
+            } catch (err) {
+              Alert.alert('Lỗi', 'Không thể xóa giấy phép. Vui lòng thử lại!');
+            }
+          },
+        },
+      ],
+      { cancelable: true },
+    );
   };
 
   const handleCloseLicenseModal = () => {
@@ -216,8 +265,9 @@ const AddShopScreen = () => {
         </TouchableOpacity>
 
         {/* Nút giấy phép */}
-        <View style={{ marginTop: 10 }}>
-          {item.license ? (
+        <View style={{ marginTop: 10, gap: 8 }}>
+          {/* Giấy phép kinh doanh */}
+          {item.businessLicense ? (
             <View
               style={{
                 flexDirection: 'row',
@@ -231,38 +281,75 @@ const AddShopScreen = () => {
               }}
             >
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 12, color: '#666' }}>
-                  Số GP: {item.license.licenseNumber}
+                <Text
+                  style={{ fontSize: 12, color: '#0C516F', fontWeight: '600' }}
+                >
+                  Giấy phép kinh doanh
                 </Text>
-                <Text style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
-                  {item.license.approvalStatus === 'PENDING'
+                <Text style={{ fontSize: 11, color: '#666', marginTop: 2 }}>
+                  Số GP: {item.businessLicense.licenseNumber}
+                </Text>
+                <Text style={{ fontSize: 10, color: '#999', marginTop: 2 }}>
+                  {item.businessLicense.approvalStatus === 'PENDING'
                     ? 'Chờ duyệt'
-                    : item.license.approvalStatus === 'APPROVED'
+                    : item.businessLicense.approvalStatus === 'APPROVED'
                     ? 'Đã duyệt'
                     : 'Từ chối'}
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() =>
-                  handleOpenLicenseModal(item.restaurantId, item.license)
-                }
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  backgroundColor: '#0C516F',
-                  borderRadius: 6,
-                }}
-              >
-                <Text
-                  style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                <TouchableOpacity
+                  onPress={() =>
+                    handleOpenLicenseModal(
+                      item.restaurantId,
+                      item.businessLicense,
+                      'BUSINESS_REGISTRATION',
+                    )
+                  }
+                  style={{
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    backgroundColor: '#0C516F',
+                    borderRadius: 6,
+                  }}
                 >
-                  Sửa
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}
+                  >
+                    Sửa
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    handleDeleteLicense(
+                      item.businessLicense!.licenseId,
+                      'giấy phép kinh doanh',
+                    )
+                  }
+                  style={{
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    backgroundColor: '#e74c3c',
+                    borderRadius: 6,
+                  }}
+                >
+                  <Text
+                    style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}
+                  >
+                    Xóa
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             <TouchableOpacity
-              onPress={() => handleOpenLicenseModal(item.restaurantId, null)}
+              onPress={() =>
+                handleOpenLicenseModal(
+                  item.restaurantId,
+                  null,
+                  'BUSINESS_REGISTRATION',
+                )
+              }
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -282,7 +369,115 @@ const AddShopScreen = () => {
               <Text
                 style={{ color: '#0C516F', fontSize: 13, fontWeight: '600' }}
               >
-                Thêm giấy phép
+                Thêm giấy phép kinh doanh
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Giấy phép an toàn vệ sinh thực phẩm */}
+          {item.foodSafetyLicense ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: 10,
+                backgroundColor: '#E8F8F4',
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: '#2ecc40',
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{ fontSize: 12, color: '#2ecc40', fontWeight: '600' }}
+                >
+                  Giấy phép ATVS thực phẩm
+                </Text>
+                <Text style={{ fontSize: 11, color: '#666', marginTop: 2 }}>
+                  Số GP: {item.foodSafetyLicense.licenseNumber}
+                </Text>
+                <Text style={{ fontSize: 10, color: '#999', marginTop: 2 }}>
+                  {item.foodSafetyLicense.approvalStatus === 'PENDING'
+                    ? 'Chờ duyệt'
+                    : item.foodSafetyLicense.approvalStatus === 'APPROVED'
+                    ? 'Đã duyệt'
+                    : 'Từ chối'}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                <TouchableOpacity
+                  onPress={() =>
+                    handleOpenLicenseModal(
+                      item.restaurantId,
+                      item.foodSafetyLicense,
+                      'FOOD_SAFETY_CERT',
+                    )
+                  }
+                  style={{
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    backgroundColor: '#2ecc40',
+                    borderRadius: 6,
+                  }}
+                >
+                  <Text
+                    style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}
+                  >
+                    Sửa
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    handleDeleteLicense(
+                      item.foodSafetyLicense!.licenseId,
+                      'giấy phép ATVS thực phẩm',
+                    )
+                  }
+                  style={{
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    backgroundColor: '#e74c3c',
+                    borderRadius: 6,
+                  }}
+                >
+                  <Text
+                    style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}
+                  >
+                    Xóa
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() =>
+                handleOpenLicenseModal(
+                  item.restaurantId,
+                  null,
+                  'FOOD_SAFETY_CERT',
+                )
+              }
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 10,
+                backgroundColor: '#fff',
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: '#2ecc40',
+                borderStyle: 'dashed',
+              }}
+            >
+              <Image
+                source={require('../assets/add_image.png')}
+                style={{ width: 16, height: 16, marginRight: 6 }}
+              />
+              <Text
+                style={{ color: '#2ecc40', fontSize: 13, fontWeight: '600' }}
+              >
+                Thêm giấy phép ATVS thực phẩm
               </Text>
             </TouchableOpacity>
           )}
@@ -400,6 +595,7 @@ const AddShopScreen = () => {
           onClose={handleCloseLicenseModal}
           restaurantId={selectedRestaurantForLicense}
           existingLicense={existingLicense}
+          initialLicenseType={selectedLicenseType}
         />
       )}
 
