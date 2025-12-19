@@ -190,7 +190,12 @@ export const useProfile = () => {
     }
 
     // Check phone
-    if (!profile.phone || profile.phone.trim() === '') {
+    if (
+      !profile.phone ||
+      profile.phone.trim() === '' ||
+      profile.phone === 'null' ||
+      profile.phone == ''
+    ) {
       Alert.alert('⚠️ Lỗi', 'Số điện thoại không được đê trống');
       return false;
     }
@@ -250,5 +255,6 @@ export const useProfile = () => {
     setProfile,
     savePersonalInfo,
     saveSecurityInfo,
+    validatePersonalInfo,
   };
 };

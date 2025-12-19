@@ -22,8 +22,14 @@ import { updateUserProfile, changePassword } from '../api/apiConfig'; // thêm
 
 export default function ProfileScreen() {
   const navigation = useNavigation<any>();
-  const { loading, profile, setProfile, savePersonalInfo, saveSecurityInfo } =
-    useProfile();
+  const {
+    loading,
+    profile,
+    setProfile,
+    savePersonalInfo,
+    saveSecurityInfo,
+    validatePersonalInfo,
+  } = useProfile();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const {
     localImages,
@@ -61,8 +67,35 @@ export default function ProfileScreen() {
   // Lưu thông tin + cập nhật avatar nếu cần
   const onSavePersonal = async () => {
     try {
-      let avatarUrl: string | null = null;
+      // Check name
+      if (!profile.name || profile.name.trim() === '') {
+        Alert.alert('⚠️ Lỗi', 'Tên không được để trống');
+        return;
+      }
 
+      if (profile.name.trim().length < 2) {
+        Alert.alert('⚠️ Lỗi', 'Tên phải có ít nhất 2 ký tự');
+        return;
+      }
+
+      // Check phone
+      if (
+        !profile.phone ||
+        profile.phone.trim() === '' ||
+        profile.phone === 'null' ||
+        profile.phone == ''
+      ) {
+        Alert.alert('⚠️ Lỗi', 'Số điện thoại không được đê trống');
+        return;
+      }
+
+      // Validate phone format (Vietnam)
+      const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+      if (!phoneRegex.test(profile.phone)) {
+        Alert.alert('⚠️ Lỗi', 'Số điện thoại không hợp lệ.');
+        return false;
+      }
+      let avatarUrl: string | null = null;
       // Chỉ upload nếu có chọn ảnh mới
       const selected = localImages[0];
       if (selected) {
