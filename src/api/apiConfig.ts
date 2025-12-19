@@ -287,15 +287,38 @@ export const getMyLicenses = async () => {
   return response.data;
 };
 
+// Lấy giấy phép theo restaurantId
+export const getRestaurantLicenses = async (restaurantId: string) => {
+  const response = await API.get(`/restaurants/${restaurantId}/licenses`);
+  return response.data;
+};
+
 // Upload giấy phép kinh doanh
 export const uploadLicense = async (data: {
+  restaurantId: string;
   licenseType: string;
   licenseNumber: string;
   issueDate: string;
   expireDate: string;
   documentUrl: string;
 }) => {
+  console.log('Uploading license with data:', data);
   return API.post('/licenses', data);
+};
+
+// Cập nhật giấy phép
+export const updateLicense = async (
+  licenseId: string,
+  data: {
+    restaurantId: string;
+    licenseType: string;
+    licenseNumber: string;
+    issueDate: string;
+    expireDate: string;
+    documentUrl: string;
+  },
+) => {
+  return API.put(`/licenses/${licenseId}`, data);
 };
 
 export default API;

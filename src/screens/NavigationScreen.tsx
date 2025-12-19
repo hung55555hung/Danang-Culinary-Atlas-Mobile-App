@@ -22,7 +22,9 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import Geolocation from '@react-native-community/geolocation';
 
 // Khởi tạo Mapbox - HARDCODED TOKEN
-Mapbox.setAccessToken('your_mapbox_access_token_here');
+Mapbox.setAccessToken(
+  'pk.eyJ1IjoiaHVuZzA1NDcyNCIsImEiOiJjbWl5bHk3eWIwaHJoM2dweXBxMGcwMm10In0.gXxq4YOgffAD8vV7y6nSxA',
+);
 
 type TravelMode = 'driving' | 'walking' | 'cycling';
 type MapStyle = 'streets' | 'satellite' | 'outdoors';

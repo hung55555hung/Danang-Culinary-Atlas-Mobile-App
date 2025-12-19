@@ -15,67 +15,86 @@ import Header from '../components/Header';
 import {
   getVendorRestaurants,
   deleteRestaurant,
-  getMyLicenses,
+  getRestaurantLicenses,
 } from '../api/apiConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UploadLicenseModal from '../components/UploadLicenseModal';
 
+interface ShopWithLicense {
+  restaurantId: string;
+  name: string;
+  address: string;
+  images: any;
+  approvalStatus: string;
+  license?: {
+    licenseId: string;
+    licenseType: string;
+    licenseNumber: string;
+    issueDate: string;
+    expireDate: string;
+    documentUrl: string;
+    approvalStatus: string;
+  } | null;
+}
+
 const AddShopScreen = () => {
   const navigation = useNavigation<any>();
-  const [shops, setShops] = useState<any[]>([]);
+  const [shops, setShops] = useState<ShopWithLicense[]>([]);
   const [loading, setLoading] = useState(true);
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [selectedShop, setSelectedShop] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [licenseModalVisible, setLicenseModalVisible] = useState(false);
-  const [hasLicense, setHasLicense] = useState(false);
-  const [licenseData, setLicenseData] = useState<any>(null);
-  const [loadingLicense, setLoadingLicense] = useState(true);
+  const [selectedRestaurantForLicense, setSelectedRestaurantForLicense] =
+    useState<string | null>(null);
+  const [existingLicense, setExistingLicense] = useState<any>(null);
 
   useEffect(() => {
-    const fetchVendorIdAndShops = async () => {
-      const id = await AsyncStorage.getItem('accountID');
-      if (id) {
-        setVendorId(id);
-        setLoading(true);
-        try {
-          const data = await getVendorRestaurants(id);
-          console.log('Quán của vendor:', data);
-          setShops(data);
-        } catch (err) {
-          setShops([]);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    const fetchLicenseStatus = async () => {
-      setLoadingLicense(true);
-      try {
-        const licenses = await getMyLicenses();
-        console.log('Giấy phép:', licenses);
-        if (licenses && licenses.length > 0) {
-          setHasLicense(true);
-          setLicenseData(licenses[0]);
-        } else {
-          setHasLicense(false);
-          setLicenseData(null);
-        }
-      } catch (err) {
-        console.error('Lỗi khi lấy thông tin giấy phép:', err);
-        setHasLicense(false);
-        setLicenseData(null);
-      } finally {
-        setLoadingLicense(false);
-      }
-    };
-
     fetchVendorIdAndShops();
-    fetchLicenseStatus();
   }, []);
 
-  // Hàm xóa quán (giả lập, bạn cần gọi API thực tế)
+  const fetchVendorIdAndShops = async () => {
+    const id = await AsyncStorage.getItem('accountID');
+    if (id) {
+      setVendorId(id);
+      setLoading(true);
+      try {
+        const data = await getVendorRestaurants(id);
+        console.log('Quán của vendor:', data);
+
+        // Fetch licenses for each restaurant
+        const shopsWithLicenses = await Promise.all(
+          data.map(async (shop: any) => {
+            try {
+              const licenses = await getRestaurantLicenses(shop.restaurantId);
+              // Tìm giấy phép kinh doanh (BUSINESS_REGISTRATION)
+              const businessLicense = licenses.find(
+                (lic: any) => lic.licenseType === 'BUSINESS_REGISTRATION',
+              );
+              return {
+                ...shop,
+                license: businessLicense || null,
+              };
+            } catch (err) {
+              console.error(
+                `Lỗi khi lấy license cho quán ${shop.restaurantId}:`,
+                err,
+              );
+              return { ...shop, license: null };
+            }
+          }),
+        );
+
+        setShops(shopsWithLicenses);
+      } catch (err) {
+        setShops([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Hàm xóa quán
   const handleDeleteShop = async (shop: any) => {
     Alert.alert(
       'Xác nhận',
@@ -104,7 +123,21 @@ const AddShopScreen = () => {
     );
   };
 
-  const renderShop = ({ item }: { item: any }) => {
+  const handleOpenLicenseModal = (restaurantId: string, license: any) => {
+    setSelectedRestaurantForLicense(restaurantId);
+    setExistingLicense(license);
+    setLicenseModalVisible(true);
+  };
+
+  const handleCloseLicenseModal = () => {
+    setLicenseModalVisible(false);
+    setSelectedRestaurantForLicense(null);
+    setExistingLicense(null);
+    // Refresh danh sách quán để cập nhật trạng thái license
+    fetchVendorIdAndShops();
+  };
+
+  const renderShop = ({ item }: { item: ShopWithLicense }) => {
     // Lấy URL ảnh đầu tiên từ object images
     let imageUrl = '';
     if (item.images && typeof item.images === 'object') {
@@ -165,7 +198,7 @@ const AddShopScreen = () => {
             />
           </TouchableOpacity>
         </View>
-        {/* Nội dung còn lại */}
+        {/* Nội dung chính */}
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() =>
@@ -181,6 +214,79 @@ const AddShopScreen = () => {
             <Text style={styles.shopAddress}>{item.address}</Text>
           </View>
         </TouchableOpacity>
+
+        {/* Nút giấy phép */}
+        <View style={{ marginTop: 10 }}>
+          {item.license ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: 10,
+                backgroundColor: '#E8F4F8',
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: '#0C516F',
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 12, color: '#666' }}>
+                  Số GP: {item.license.licenseNumber}
+                </Text>
+                <Text style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
+                  {item.license.approvalStatus === 'PENDING'
+                    ? 'Chờ duyệt'
+                    : item.license.approvalStatus === 'APPROVED'
+                    ? 'Đã duyệt'
+                    : 'Từ chối'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() =>
+                  handleOpenLicenseModal(item.restaurantId, item.license)
+                }
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  backgroundColor: '#0C516F',
+                  borderRadius: 6,
+                }}
+              >
+                <Text
+                  style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}
+                >
+                  Sửa
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => handleOpenLicenseModal(item.restaurantId, null)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 10,
+                backgroundColor: '#fff',
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: '#0C516F',
+                borderStyle: 'dashed',
+              }}
+            >
+              <Image
+                source={require('../assets/add_image.png')}
+                style={{ width: 16, height: 16, marginRight: 6 }}
+              />
+              <Text
+                style={{ color: '#0C516F', fontSize: 13, fontWeight: '600' }}
+              >
+                Thêm giấy phép
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     );
   };
@@ -197,61 +303,12 @@ const AddShopScreen = () => {
       {/* Danh sách quán đã đăng ký */}
       <Text style={styles.sectionTitle}>Quán đã đăng ký</Text>
 
-      {/* Trạng thái giấy phép */}
-      {loadingLicense ? (
-        <ActivityIndicator size="small" style={{ marginVertical: 8 }} />
-      ) : hasLicense ? (
-        <View style={styles.licenseStatusContainer}>
-          <View
-            style={{
-              width: 20,
-              height: 20,
-              borderRadius: 10,
-              backgroundColor: '#2ecc40',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: 10,
-            }}
-          >
-            <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>
-              ✓
-            </Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.licenseStatusText}>Đã gửi giấy phép</Text>
-            <Text style={styles.licenseSubText}>
-              Trạng thái:{' '}
-              {licenseData?.approvalStatus === 'PENDING'
-                ? 'Chờ duyệt'
-                : licenseData?.approvalStatus === 'APPROVED'
-                ? 'Đã duyệt'
-                : licenseData?.approvalStatus === 'REJECTED'
-                ? 'Từ chối'
-                : 'Chưa rõ'}
-            </Text>
-          </View>
-        </View>
-      ) : (
-        <TouchableOpacity
-          style={styles.addLicenseButton}
-          onPress={() => setLicenseModalVisible(true)}
-        >
-          <Image
-            source={require('../assets/add_image.png')}
-            style={styles.addLicenseIcon}
-          />
-          <Text style={styles.addLicenseText}>Thêm giấy phép</Text>
-        </TouchableOpacity>
-      )}
-
       {loading ? (
         <ActivityIndicator style={{ marginTop: 20 }} />
       ) : (
         <FlatList
           data={shops}
-          keyExtractor={item =>
-            item.restaurantId?.toString() || item.id?.toString()
-          }
+          keyExtractor={item => item.restaurantId}
           renderItem={renderShop}
           style={styles.shopList}
           contentContainerStyle={{ paddingBottom: 20 }}
@@ -337,21 +394,14 @@ const AddShopScreen = () => {
       </Modal>
 
       {/* Modal Upload License */}
-      <UploadLicenseModal
-        visible={licenseModalVisible}
-        onClose={() => {
-          setLicenseModalVisible(false);
-          // Reload license status sau khi đóng modal
-          getMyLicenses()
-            .then(licenses => {
-              if (licenses && licenses.length > 0) {
-                setHasLicense(true);
-                setLicenseData(licenses[0]);
-              }
-            })
-            .catch(err => console.error('Lỗi reload license:', err));
-        }}
-      />
+      {selectedRestaurantForLicense && (
+        <UploadLicenseModal
+          visible={licenseModalVisible}
+          onClose={handleCloseLicenseModal}
+          restaurantId={selectedRestaurantForLicense}
+          existingLicense={existingLicense}
+        />
+      )}
 
       {/* Button Thêm quán mới */}
       <TouchableOpacity

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,16 +14,27 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadToCloudinary } from '../utils/uploadToCloudinary';
-import { uploadLicense } from '../api/apiConfig';
+import { uploadLicense, updateLicense } from '../api/apiConfig';
 
 interface UploadLicenseModalProps {
   visible: boolean;
   onClose: () => void;
+  restaurantId: string;
+  existingLicense?: {
+    licenseId: string;
+    licenseType: string;
+    licenseNumber: string;
+    issueDate: string;
+    expireDate: string;
+    documentUrl: string;
+  } | null;
 }
 
 const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
   visible,
   onClose,
+  restaurantId,
+  existingLicense,
 }) => {
   const [licenseType, setLicenseType] = useState('BUSINESS_REGISTRATION');
   const [licenseNumber, setLicenseNumber] = useState('');
@@ -34,6 +45,19 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  // Load existing license data if editing
+  useEffect(() => {
+    if (existingLicense) {
+      setLicenseType(existingLicense.licenseType);
+      setLicenseNumber(existingLicense.licenseNumber);
+      setIssueDate(new Date(existingLicense.issueDate));
+      setExpireDate(new Date(existingLicense.expireDate));
+      setImageUri(existingLicense.documentUrl);
+    } else {
+      resetForm();
+    }
+  }, [existingLicense, visible]);
 
   const resetForm = () => {
     setLicenseType('BUSINESS_REGISTRATION');
@@ -86,39 +110,57 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
     );
   };
 
+  // Note: Currently using image picker for license photos.
+  // To support PDF files, you can install react-native-document-picker
+  // and modify this function to handle PDF selection
+
   const handleSubmit = async () => {
     // Validate
     if (!licenseNumber.trim()) {
       Alert.alert('Thông báo', 'Vui lòng nhập số giấy phép');
       return;
     }
-    if (!imageUri || !imageBase64) {
-      Alert.alert('Thông báo', 'Vui lòng chọn ảnh giấy phép');
-      return;
-    }
 
     setUploading(true);
 
     try {
-      // 1. Upload ảnh lên Cloudinary
-      const base64Image = `data:image/jpeg;base64,${imageBase64}`;
-      const documentUrl = await uploadToCloudinary(base64Image);
+      let documentUrl = imageUri;
 
-      // 2. Gọi API để lưu thông tin giấy phép
-      await uploadLicense({
+      // Upload ảnh mới nếu có chọn ảnh từ thiết bị
+      if (imageBase64) {
+        const base64Image = `data:image/jpeg;base64,${imageBase64}`;
+        documentUrl = await uploadToCloudinary(base64Image);
+      }
+
+      if (!documentUrl) {
+        Alert.alert('Lỗi', 'Không có file giấy phép');
+        setUploading(false);
+        return;
+      }
+
+      const payload = {
+        restaurantId,
         licenseType,
         licenseNumber,
         issueDate: formatDate(issueDate),
         expireDate: formatDate(expireDate),
         documentUrl,
-      });
+      };
 
-      Alert.alert('Thành công', 'Đã tải lên giấy phép thành công!');
+      // Nếu đang chỉnh sửa, gọi API update, ngược lại gọi API create
+      if (existingLicense) {
+        await updateLicense(existingLicense.licenseId, payload);
+        Alert.alert('Thành công', 'Đã cập nhật giấy phép thành công!');
+      } else {
+        await uploadLicense(payload);
+        Alert.alert('Thành công', 'Đã tải lên giấy phép thành công!');
+      }
+
       resetForm();
       onClose();
     } catch (error) {
       console.error('Error uploading license:', error);
-      Alert.alert('Lỗi', 'Không thể tải lên giấy phép. Vui lòng thử lại!');
+      Alert.alert('Lỗi', 'Không thể lưu giấy phép. Vui lòng thử lại!');
     } finally {
       setUploading(false);
     }
@@ -157,7 +199,9 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
                 color: '#333',
               }}
             >
-              Thêm giấy phép kinh doanh
+              {existingLicense
+                ? 'Chỉnh sửa giấy phép'
+                : 'Thêm giấy phép kinh doanh'}
             </Text>
 
             {/* Loại giấy phép */}
@@ -294,9 +338,9 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
               />
             )}
 
-            {/* Chọn ảnh */}
+            {/* Chọn ảnh/file */}
             <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 6 }}>
-              Ảnh giấy phép:
+              Tài liệu giấy phép (ảnh/PDF):
             </Text>
             <TouchableOpacity
               style={{
@@ -311,7 +355,7 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
               onPress={handlePickImage}
             >
               <Text style={{ color: '#0C516F', fontWeight: '600' }}>
-                {imageUri ? 'Đổi ảnh' : 'Chọn ảnh'}
+                {imageUri ? 'Đổi tài liệu' : 'Chọn tài liệu'}
               </Text>
             </TouchableOpacity>
 
@@ -368,7 +412,7 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
                       fontWeight: 'bold',
                     }}
                   >
-                    Tải lên
+                    {existingLicense ? 'Cập nhật' : 'Tải lên'}
                   </Text>
                 )}
               </TouchableOpacity>

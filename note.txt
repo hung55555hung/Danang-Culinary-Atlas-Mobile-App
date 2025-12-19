@@ -28,3 +28,8 @@
 +upload giấy phép kinh doanh
 +tạo icon hiển thị app
 +loadmore cho review
+
+
+fix:
++ cập nhật số điện thoại
++ đổi lại giấy phép kinh doanh cho mỗi quán(file pdf)

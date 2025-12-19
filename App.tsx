@@ -6,7 +6,8 @@ import { Linking } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
 
 // 🗺️ Set Mapbox Access Token - HARDCODED
-const MAPBOX_TOKEN = 'your_mapbox_access_token_here';
+const MAPBOX_TOKEN =
+  'pk.eyJ1IjoiaHVuZzA1NDcyNCIsImEiOiJjbWl5bHk3eWIwaHJoM2dweXBxMGcwMm10In0.gXxq4YOgffAD8vV7y6nSxA';
 Mapbox.setAccessToken(MAPBOX_TOKEN);
 
 export default function App() {
