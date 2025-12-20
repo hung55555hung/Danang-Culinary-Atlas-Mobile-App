@@ -48,6 +48,7 @@ const AddShopScreen = () => {
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [selectedShop, setSelectedShop] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const [licenseModalVisible, setLicenseModalVisible] = useState(false);
   const [selectedRestaurantForLicense, setSelectedRestaurantForLicense] =
     useState<string | null>(null);
@@ -236,9 +237,27 @@ const AddShopScreen = () => {
           </Text>
           <TouchableOpacity
             style={{ padding: 4 }}
-            onPress={() => {
-              setSelectedShop(item);
-              setModalVisible(true);
+            onPress={event => {
+              const target = event.currentTarget as any;
+              if (target && target.measure) {
+                target.measure(
+                  (
+                    x: number,
+                    y: number,
+                    width: number,
+                    height: number,
+                    pageX: number,
+                    pageY: number,
+                  ) => {
+                    setMenuPosition({
+                      top: pageY,
+                      right: 30,
+                    });
+                    setSelectedShop(item);
+                    setModalVisible(true);
+                  },
+                );
+              }
             }}
           >
             <Image
@@ -526,19 +545,24 @@ const AddShopScreen = () => {
           style={{
             flex: 1,
             backgroundColor: 'rgba(0,0,0,0.2)',
-            justifyContent: 'center',
-            alignItems: 'center',
           }}
           activeOpacity={1}
           onPressOut={() => setModalVisible(false)}
         >
           <View
             style={{
+              position: 'absolute',
+              top: menuPosition.top,
+              right: menuPosition.right,
               backgroundColor: '#fff',
               borderRadius: 10,
-              padding: 20,
-              minWidth: 200,
+              padding: 16,
+              minWidth: 150,
               elevation: 5,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
             }}
           >
             <TouchableOpacity

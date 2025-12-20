@@ -727,17 +727,17 @@ export default function NavigationScreen() {
           borderRadius: 16,
           padding: 12,
           flexDirection: 'row',
-          justifyContent: 'space-around',
+          justifyContent: 'space-between',
           alignItems: 'center',
         }}
       >
         {/* Travel Mode Selector */}
-        <View style={{ flexDirection: 'row', gap: 8 }}>
+        <View style={{ flexDirection: 'row', gap: 6, flexShrink: 0 }}>
           <TouchableOpacity
             onPress={() => setTravelMode('driving')}
             style={{
-              paddingVertical: 10,
-              paddingHorizontal: 14,
+              paddingVertical: 8,
+              paddingHorizontal: 10,
               borderRadius: 12,
               backgroundColor:
                 travelMode === 'driving' ? '#FF5722' : 'rgba(255,255,255,0.2)',
@@ -748,8 +748,8 @@ export default function NavigationScreen() {
           <TouchableOpacity
             onPress={() => setTravelMode('cycling')}
             style={{
-              paddingVertical: 10,
-              paddingHorizontal: 14,
+              paddingVertical: 8,
+              paddingHorizontal: 10,
               borderRadius: 12,
               backgroundColor:
                 travelMode === 'cycling' ? '#2196F3' : 'rgba(255,255,255,0.2)',
@@ -760,8 +760,8 @@ export default function NavigationScreen() {
           <TouchableOpacity
             onPress={() => setTravelMode('walking')}
             style={{
-              paddingVertical: 10,
-              paddingHorizontal: 14,
+              paddingVertical: 8,
+              paddingHorizontal: 10,
               borderRadius: 12,
               backgroundColor:
                 travelMode === 'walking' ? '#4CAF50' : 'rgba(255,255,255,0.2)',
@@ -777,77 +777,81 @@ export default function NavigationScreen() {
             width: 1,
             height: 30,
             backgroundColor: 'rgba(255,255,255,0.3)',
+            marginHorizontal: 4,
           }}
         />
 
-        {/* Map Style Selector */}
-        <TouchableOpacity
-          onPress={() => {
-            const styles: MapStyle[] = ['streets', 'satellite', 'outdoors'];
-            const currentIndex = styles.indexOf(mapStyle);
-            const nextIndex = (currentIndex + 1) % styles.length;
-            setMapStyle(styles[nextIndex]);
-          }}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 14,
-            borderRadius: 12,
-            backgroundColor: 'rgba(255,255,255,0.2)',
-          }}
-        >
-          <Text style={{ fontSize: 20 }}>
-            {mapStyle === 'satellite'
-              ? '🛰️'
-              : mapStyle === 'outdoors'
-              ? '🗺️'
-              : '📍'}
-          </Text>
-        </TouchableOpacity>
+        {/* Right Controls */}
+        <View style={{ flexDirection: 'row', gap: 6, flexShrink: 0 }}>
+          {/* Map Style Selector */}
+          <TouchableOpacity
+            onPress={() => {
+              const styles: MapStyle[] = ['streets', 'satellite', 'outdoors'];
+              const currentIndex = styles.indexOf(mapStyle);
+              const nextIndex = (currentIndex + 1) % styles.length;
+              setMapStyle(styles[nextIndex]);
+            }}
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 10,
+              borderRadius: 12,
+              backgroundColor: 'rgba(255,255,255,0.2)',
+            }}
+          >
+            <Text style={{ fontSize: 20 }}>
+              {mapStyle === 'satellite'
+                ? '🛰️'
+                : mapStyle === 'outdoors'
+                ? '🗺️'
+                : '📍'}
+            </Text>
+          </TouchableOpacity>
 
-        {/* Tracking Toggle */}
-        <TouchableOpacity
-          onPress={() => {
-            if (isTracking) {
-              stopTracking();
-            } else {
-              startTracking();
-            }
-          }}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 14,
-            borderRadius: 12,
-            backgroundColor: isTracking ? '#4CAF50' : 'rgba(255,255,255,0.2)',
-          }}
-        >
-          <Text style={{ fontSize: 20 }}>{isTracking ? '⏸️' : '▶️'}</Text>
-        </TouchableOpacity>
+          {/* Tracking Toggle */}
+          <TouchableOpacity
+            onPress={() => {
+              if (isTracking) {
+                stopTracking();
+              } else {
+                startTracking();
+              }
+            }}
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 10,
+              borderRadius: 12,
+              backgroundColor: isTracking ? '#4CAF50' : 'rgba(255,255,255,0.2)',
+            }}
+          >
+            <Text style={{ fontSize: 20 }}>{isTracking ? '⏸️' : '▶️'}</Text>
+          </TouchableOpacity>
 
-        {/* Recenter Button */}
-        <TouchableOpacity
-          onPress={async () => {
-            try {
-              const currentLocation = await getCurrentLocation();
-              setUserLocation(currentLocation);
-              cameraRef.current?.setCamera({
-                centerCoordinate: currentLocation,
-                zoomLevel: 16,
-                pitch: isTracking ? 60 : 30,
-                animationDuration: 1000,
-              });
-            } catch (error) {
-              console.error('❌ Lỗi lấy vị trí:', error);
-            }
-          }}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 14,
-            borderRadius: 12,
-            backgroundColor: 'rgba(255,255,255,0.2)',
-          }}
-        >
-          <Text style={{ fontSize: 20 }}>🎯</Text>
-        </TouchableOpacity>
+          {/* Recenter Button */}
+          <TouchableOpacity
+            onPress={async () => {
+              try {
+                const currentLocation = await getCurrentLocation();
+                setUserLocation(currentLocation);
+                cameraRef.current?.setCamera({
+                  centerCoordinate: currentLocation,
+                  zoomLevel: 16,
+                  pitch: isTracking ? 60 : 30,
+                  animationDuration: 1000,
+                });
+              } catch (error) {
+                console.error('❌ Lỗi lấy vị trí:', error);
+              }
+            }}
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 10,
+              borderRadius: 12,
+              backgroundColor: 'rgba(255,255,255,0.2)',
+            }}
+          >
+            <Text style={{ fontSize: 20 }}>🎯</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

@@ -21,25 +21,56 @@ const VendorDishesScreen = () => {
   const { restaurantId } = route.params;
   const [dishes, setDishes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const isFocused = useIsFocused();
+
+  const fetchDishes = async (page: number = 0, append: boolean = false) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
+
+    try {
+      const response = await getVendorDishes(restaurantId, page, 10);
+      console.log('Dishes fetched:', response);
+
+      if (append) {
+        setDishes(prev => [...prev, ...response.content]);
+      } else {
+        setDishes(response.content);
+      }
+
+      // Kiểm tra còn trang nào không
+      setHasMore(!response.last);
+      setCurrentPage(page);
+    } catch (err) {
+      if (!append) {
+        setDishes([]);
+      }
+      console.error('Error fetching dishes:', err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (isFocused) {
-      const fetchDishes = async () => {
-        setLoading(true);
-        try {
-          const data = await getVendorDishes(restaurantId);
-          console.log('Dishes fetched:', data);
-          setDishes(data);
-        } catch (err) {
-          setDishes([]);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchDishes();
+      // Reset về trang đầu khi vào lại màn hình
+      setCurrentPage(0);
+      setHasMore(true);
+      fetchDishes(0, false);
     }
   }, [restaurantId, isFocused]);
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchDishes(currentPage + 1, true);
+    }
+  };
 
   const handleEditDish = (dish: any) => {
     navigation.navigate('EditDish', { dish });
@@ -59,7 +90,9 @@ const VendorDishesScreen = () => {
           style={styles.dishImage}
         />
       </View>
-      <Text style={styles.dishName}>{item.name}</Text>
+      <Text style={styles.dishName} numberOfLines={2}>
+        {item.name}
+      </Text>
       <Text style={styles.dishPrice}>{item.price.toFixed(2)} ₫</Text>
       <Text
         style={[
@@ -71,7 +104,7 @@ const VendorDishesScreen = () => {
       </Text>
 
       {/* Thêm 2 nút Sửa/Xóa ở dưới mỗi dish */}
-      <View style={{ flexDirection: 'row', marginTop: 6, gap: 8 }}>
+      <View style={styles.buttonContainer}>
         <TouchableOpacity
           onPress={() => handleEditDish(item)}
           style={styles.btnEdit}
@@ -107,6 +140,16 @@ const VendorDishesScreen = () => {
           numColumns={3}
           columnWrapperStyle={styles.row}
           contentContainerStyle={{ paddingBottom: 20 }}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <ActivityIndicator
+                style={{ marginVertical: 20 }}
+                color="#0C516F"
+              />
+            ) : null
+          }
           ListEmptyComponent={
             <Text style={{ textAlign: 'center', color: '#888', marginTop: 20 }}>
               Chưa có món ăn nào.

@@ -162,9 +162,15 @@ export const deleteRestaurant = async (restaurantId: string) => {
   return res.data;
 };
 
-export const getVendorDishes = async (restaurantId: string) => {
-  const res = await API.get(`/restaurants/${restaurantId}/vendor-dishes`);
-  return res.data.content;
+export const getVendorDishes = async (
+  restaurantId: string,
+  page: number = 0,
+  size: number = 10,
+) => {
+  const res = await API.get(
+    `/restaurants/${restaurantId}/vendor-dishes?page=${page}&size=${size}`,
+  );
+  return res.data;
 };
 
 export const createDish = async (data: {

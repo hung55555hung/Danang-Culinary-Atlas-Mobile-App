@@ -39,6 +39,7 @@ const styles = StyleSheet.create({
     padding: 8,
     minWidth: 100,
     maxWidth: 120,
+    justifyContent: 'space-between',
   },
   dishImageBox: {
     width: 60,
@@ -62,6 +63,7 @@ const styles = StyleSheet.create({
     color: '#222',
     marginBottom: 4,
     textAlign: 'center',
+    minHeight: 36,
   },
   dishStatus: {
     fontSize: 12,
@@ -114,22 +116,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 12,
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    marginTop: 8,
+    gap: 6,
+    width: '100%',
+    paddingHorizontal: 4,
+  },
   btnDelete: {
     flex: 1,
     paddingVertical: 6,
     borderRadius: 6,
     backgroundColor: '#e74c3c',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btnEdit: {
     flex: 1,
     paddingVertical: 6,
     borderRadius: 6,
     backgroundColor: '#1E90FF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btnEditText: {
     color: '#fff',
     textAlign: 'center',
     fontWeight: '600',
+    fontSize: 12,
   },
 });
 
