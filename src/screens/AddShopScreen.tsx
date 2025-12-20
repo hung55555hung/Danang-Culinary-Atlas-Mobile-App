@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../styles/AddShopStyles';
@@ -46,6 +47,7 @@ const AddShopScreen = () => {
   const [shops, setShops] = useState<ShopWithLicense[]>([]);
   const [loading, setLoading] = useState(true);
   const [vendorId, setVendorId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedShop, setSelectedShop] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
@@ -505,6 +507,11 @@ const AddShopScreen = () => {
     );
   };
 
+  // Lọc danh sách quán theo tên
+  const filteredShops = shops.filter(shop =>
+    shop.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -517,18 +524,45 @@ const AddShopScreen = () => {
       {/* Danh sách quán đã đăng ký */}
       <Text style={styles.sectionTitle}>Quán đã đăng ký</Text>
 
+      {/* Thanh tìm kiếm */}
+      <View
+        style={{
+          marginHorizontal: 16,
+          marginBottom: 12,
+          backgroundColor: '#f5f5f5',
+          borderRadius: 10,
+          borderWidth: 1,
+          borderColor: '#ddd',
+        }}
+      >
+        <TextInput
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            fontSize: 15,
+            color: '#333',
+          }}
+          placeholder="Tìm kiếm quán theo tên..."
+          placeholderTextColor="#999"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
       {loading ? (
         <ActivityIndicator style={{ marginTop: 20 }} />
       ) : (
         <FlatList
-          data={shops}
+          data={filteredShops}
           keyExtractor={item => item.restaurantId}
           renderItem={renderShop}
           style={styles.shopList}
           contentContainerStyle={{ paddingBottom: 20 }}
           ListEmptyComponent={
             <Text style={{ textAlign: 'center', color: '#888', marginTop: 20 }}>
-              Bạn chưa đăng ký quán nào.
+              {searchQuery
+                ? 'Không tìm thấy quán nào phù hợp.'
+                : 'Bạn chưa đăng ký quán nào.'}
             </Text>
           }
         />
