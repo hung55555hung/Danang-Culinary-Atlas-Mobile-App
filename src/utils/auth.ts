@@ -29,7 +29,7 @@ export const getRole = async () => {
 
 export const getUserId = async (): Promise<string | null> => {
   try {
-    return await AsyncStorage.getItem('userId');
+    return await AsyncStorage.getItem('accountID');
   } catch (error) {
     console.error('Lỗi khi đọc userId:', error);
     return null;

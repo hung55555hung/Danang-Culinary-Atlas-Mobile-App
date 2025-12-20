@@ -39,6 +39,7 @@ interface ReviewItemProps {
     vendorReply: string,
     repliedAt: string,
   ) => void;
+  isAuthenticated?: boolean;
 }
 
 export default function ReviewItem({
@@ -47,6 +48,7 @@ export default function ReviewItem({
   onReviewDeleted,
   restaurantOwnerAccountId,
   onReplySuccess,
+  isAuthenticated = false,
 }: ReviewItemProps) {
   const navigation = useNavigation<any>();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -211,7 +213,13 @@ export default function ReviewItem({
         {/* Button menu_dot */}
         <TouchableOpacity
           style={{ paddingRight: 8 }}
-          onPress={() => setMenuVisible(!menuVisible)}
+          onPress={() => {
+            if (!isAuthenticated) {
+              Alert.alert('Thông báo', 'Bạn chưa đăng nhập');
+              return;
+            }
+            setMenuVisible(!menuVisible);
+          }}
         >
           <Image
             source={require('../assets/menu_dots.png')}

@@ -26,7 +26,7 @@ import {
 } from '../api/apiConfig';
 import { handleImagePreview } from '../utils/imagePreview';
 import { get } from 'lodash';
-import { getRole } from '../utils/auth';
+import { getRole, getUserId } from '../utils/auth';
 
 export default function RestaurantDetailScreen() {
   const route = useRoute<any>();
@@ -57,12 +57,25 @@ export default function RestaurantDetailScreen() {
   const [restaurantTags, setRestaurantTags] = useState<any[]>([]);
   const [tagsLoading, setTagsLoading] = useState(false);
   const [localReviews, setLocalReviews] = useState<any[]>([]);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   console.log('Reviews:', reviews);
 
   // Sync reviews to local state
   useEffect(() => {
     setLocalReviews(reviews);
   }, [reviews]);
+
+  // Check user authentication and role
+  useEffect(() => {
+    const checkUserAuth = async () => {
+      const userId = await getUserId();
+      const role = await getRole();
+      setIsAuthenticated(!!userId);
+      setUserRole(role);
+    };
+    checkUserAuth();
+  }, []);
 
   // Function to update review with vendor reply
   const updateReviewWithReply = (
@@ -216,19 +229,21 @@ export default function RestaurantDetailScreen() {
         >
           {restaurantDetail?.name}
         </Text>
-        <TouchableOpacity
-          testID="report-button"
-          accessibilityLabel="report-button"
-          style={styles.reportButton}
-          onPress={() => setReportVisible(true)}
-        >
-          <Image
-            testID="report-icon"
-            accessibilityLabel="report-icon"
-            style={styles.reportIcon}
-            source={require('../assets/report.png')}
-          />
-        </TouchableOpacity>
+        {isAuthenticated && userRole !== 'vendor' && (
+          <TouchableOpacity
+            testID="report-button"
+            accessibilityLabel="report-button"
+            style={styles.reportButton}
+            onPress={() => setReportVisible(true)}
+          >
+            <Image
+              testID="report-icon"
+              accessibilityLabel="report-icon"
+              style={styles.reportIcon}
+              source={require('../assets/report.png')}
+            />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           testID="close-button"
           accessibilityLabel="close-button"
@@ -441,6 +456,7 @@ export default function RestaurantDetailScreen() {
               onReviewDeleted={removeReview}
               restaurantOwnerAccountId={restaurantDetail?.ownerAccountId}
               onReplySuccess={updateReviewWithReply}
+              isAuthenticated={isAuthenticated}
             />
           </View>
         )}

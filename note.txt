@@ -33,3 +33,14 @@
 fix:
 + cập nhật số điện thoại
 + đổi lại giấy phép kinh doanh cho mỗi quán(file pdf)
+
+
+fix:
+1. Update lại thông báo khi chưa login(done)
+2. Không cho gửi báo cáo khi chưa login(done)
+3. UI sidebar chi duong
+4. check ảnh hết hạn thì ko hiển thị
+5. khi click vô các saoở overview thì ko tô màu
+6. cheat lỏ giờ hiển thị
+7. không tạo báo các duoc
+8.lấy tag nhà hàng

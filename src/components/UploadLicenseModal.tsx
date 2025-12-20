@@ -229,15 +229,10 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
                   backgroundColor:
                     licenseType === 'BUSINESS_REGISTRATION'
                       ? '#E8F4F8'
-                      : existingLicense
-                      ? '#f5f5f5'
-                      : '#fff',
+                      : '#f5f5f5',
                   marginRight: 8,
                 }}
-                onPress={() =>
-                  !existingLicense && setLicenseType('BUSINESS_REGISTRATION')
-                }
-                disabled={!!existingLicense}
+                disabled={true}
               >
                 <Text
                   style={{
@@ -245,9 +240,7 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
                     color:
                       licenseType === 'BUSINESS_REGISTRATION'
                         ? '#0C516F'
-                        : existingLicense
-                        ? '#999'
-                        : '#666',
+                        : '#999',
                     fontWeight:
                       licenseType === 'BUSINESS_REGISTRATION'
                         ? 'bold'
@@ -266,26 +259,15 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
                   borderColor:
                     licenseType === 'FOOD_SAFETY_CERT' ? '#0C516F' : '#ddd',
                   backgroundColor:
-                    licenseType === 'FOOD_SAFETY_CERT'
-                      ? '#E8F4F8'
-                      : existingLicense
-                      ? '#f5f5f5'
-                      : '#fff',
+                    licenseType === 'FOOD_SAFETY_CERT' ? '#E8F4F8' : '#f5f5f5',
                 }}
-                onPress={() =>
-                  !existingLicense && setLicenseType('FOOD_SAFETY_CERT')
-                }
-                disabled={!!existingLicense}
+                disabled={true}
               >
                 <Text
                   style={{
                     textAlign: 'center',
                     color:
-                      licenseType === 'FOOD_SAFETY_CERT'
-                        ? '#0C516F'
-                        : existingLicense
-                        ? '#999'
-                        : '#666',
+                      licenseType === 'FOOD_SAFETY_CERT' ? '#0C516F' : '#999',
                     fontWeight:
                       licenseType === 'FOOD_SAFETY_CERT' ? 'bold' : 'normal',
                   }}
