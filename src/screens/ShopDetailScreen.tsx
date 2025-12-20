@@ -284,16 +284,10 @@ export default function RestaurantDetailScreen() {
         >
           {restaurantDetail?.averageRating}
         </Text>
-        {Array.from(
-          { length: Math.round(restaurantDetail?.averageRating || 0) },
-          (_, i) => (
-            <Image
-              key={i}
-              source={require('../assets/star_filled.png')}
-              style={styles.starSmall}
-            />
-          ),
-        )}
+        <Image
+          source={require('../assets/star_filled.png')}
+          style={styles.starSmall}
+        />
       </View>
       <Text
         testID="restaurant-category"
