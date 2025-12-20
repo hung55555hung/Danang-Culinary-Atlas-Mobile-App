@@ -2,6 +2,10 @@
 export const formatTimeAgo = (dateString: string): string => {
   const now = new Date();
   const past = new Date(dateString);
+
+  // Cộng thêm 7 giờ để chuyển từ UTC sang UTC+7 (giờ Việt Nam)
+  past.setHours(past.getHours() + 7);
+
   const diffMs = now.getTime() - past.getTime();
 
   const seconds = Math.floor(diffMs / 1000);

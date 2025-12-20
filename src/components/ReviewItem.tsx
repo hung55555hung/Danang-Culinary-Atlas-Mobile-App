@@ -68,10 +68,10 @@ export default function ReviewItem({
       setIsOwner(item.reviewerAccountId === accountID);
       // Check if current user is the owner/vendor of the restaurant
       if (restaurantOwnerAccountId && accountID === restaurantOwnerAccountId) {
-        console.log('✅ User is the restaurant owner - can reply to reviews');
+        // console.log('✅ User is the restaurant owner - can reply to reviews');
         setIsVendor(true);
       } else {
-        console.log('❌ User is NOT the restaurant owner');
+        //  console.log('❌ User is NOT the restaurant owner');
         setIsVendor(false);
       }
     };

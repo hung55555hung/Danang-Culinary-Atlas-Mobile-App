@@ -5,12 +5,14 @@ interface RatingStarsProps {
   maxStars?: number;
   onRatingChange?: (rating: number) => void;
   initialRating?: number;
+  readOnly?: boolean;
 }
 
 const RatingStars: React.FC<RatingStarsProps> = ({
   maxStars = 5,
   onRatingChange,
   initialRating = 0,
+  readOnly = false,
 }) => {
   const [rating, setRating] = useState(initialRating);
 
@@ -19,7 +21,9 @@ const RatingStars: React.FC<RatingStarsProps> = ({
   }, [initialRating]);
 
   const handlePress = (value: number) => {
-    setRating(value);
+    if (!readOnly) {
+      setRating(value);
+    }
     if (onRatingChange) {
       onRatingChange(value);
     }

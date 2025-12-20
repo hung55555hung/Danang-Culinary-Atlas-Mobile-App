@@ -38,9 +38,9 @@ fix:
 fix:
 1. Update lại thông báo khi chưa login(done)
 2. Không cho gửi báo cáo khi chưa login(done)
-3. UI sidebar chi duong
-4. check ảnh hết hạn thì ko hiển thị
-5. khi click vô các saoở overview thì ko tô màu
-6. cheat lỏ giờ hiển thị
-7. không tạo báo các duoc
-8.lấy tag nhà hàng
+3. UI sidebar chi duong(done)
+4. check ảnh hết hạn thì ko hiển thị(done)
+5. khi click vô các saoở overview thì ko tô màu(done)
+6. cheat lỏ giờ hiển thị(done)
+7. không tạo báo các duoc(tạo report review ok nhưng report res lỗi do BE)
+8.lấy tag nhà hàng(done)

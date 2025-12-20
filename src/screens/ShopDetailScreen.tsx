@@ -22,7 +22,6 @@ import {
   getRestaurantById,
   getDishesOfRestaurant,
   createReport,
-  getTagsByRestaurantId,
 } from '../api/apiConfig';
 import { handleImagePreview } from '../utils/imagePreview';
 import { get } from 'lodash';
@@ -54,11 +53,12 @@ export default function RestaurantDetailScreen() {
   const [reportVisible, setReportVisible] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportLoading, setReportLoading] = useState(false);
-  const [restaurantTags, setRestaurantTags] = useState<any[]>([]);
-  const [tagsLoading, setTagsLoading] = useState(false);
   const [localReviews, setLocalReviews] = useState<any[]>([]);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [validFoodImages, setValidFoodImages] = useState<string[]>([]);
+  const [isValidatingImages, setIsValidatingImages] = useState(false);
+  const [imagesModalVisible, setImagesModalVisible] = useState(false);
   console.log('Reviews:', reviews);
 
   // Sync reviews to local state
@@ -76,6 +76,39 @@ export default function RestaurantDetailScreen() {
     };
     checkUserAuth();
   }, []);
+
+  // Validate all food images
+  useEffect(() => {
+    const validateImages = async () => {
+      if (!foodImages || foodImages.length === 0) {
+        setValidFoodImages([]);
+        return;
+      }
+
+      setIsValidatingImages(true);
+      const validImages: string[] = [];
+
+      // Check each image
+      for (const imageUrl of foodImages) {
+        if (!imageUrl) continue;
+
+        try {
+          // Try to prefetch the image to check if it's accessible
+          await Image.prefetch(imageUrl);
+          validImages.push(imageUrl);
+          console.log('✅ Image valid:', imageUrl);
+        } catch (error) {
+          console.log('❌ Image failed (403 or error):', imageUrl);
+          // Image failed to load (403 or other error), skip it
+        }
+      }
+
+      setValidFoodImages(validImages);
+      setIsValidatingImages(false);
+    };
+
+    validateImages();
+  }, [foodImages]);
 
   // Function to update review with vendor reply
   const updateReviewWithReply = (
@@ -122,27 +155,6 @@ export default function RestaurantDetailScreen() {
     };
     fetchRestaurant();
   }, [currentRestaurantId, needsFetchDetail]);
-
-  // 🔹 Fetch tags riêng cho nhà hàng
-  useEffect(() => {
-    const fetchRestaurantTags = async () => {
-      if (currentRestaurantId) {
-        setTagsLoading(true);
-        try {
-          console.log('🔄 Đang fetch tags cho nhà hàng:', currentRestaurantId);
-          const response = await getTagsByRestaurantId(currentRestaurantId);
-          setRestaurantTags(response.data || []);
-          console.log('✅ Đã tải tags:', response.data);
-        } catch (err) {
-          console.error('❌ Lỗi khi tải tags:', err);
-          setRestaurantTags([]);
-        } finally {
-          setTagsLoading(false);
-        }
-      }
-    };
-    fetchRestaurantTags();
-  }, [currentRestaurantId]);
 
   useEffect(() => {
     if (fromNotification && reviewId && reviews.length > 0) {
@@ -292,13 +304,15 @@ export default function RestaurantDetailScreen() {
       </Text>
 
       {/* Tags */}
-      {tagsLoading ? (
-        <ActivityIndicator style={{ marginVertical: 10 }} />
-      ) : restaurantTags.length > 0 ? (
+      {restaurantDetail?.tags && restaurantDetail.tags.length > 0 ? (
         <View
-          style={{ flexDirection: 'row', flexWrap: 'wrap', marginVertical: 10 }}
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            marginVertical: 10,
+          }}
         >
-          {restaurantTags.map((tag, index) => (
+          {restaurantDetail.tags.map((tag: any, index: number) => (
             <View
               key={tag.tagId || index}
               style={{
@@ -321,29 +335,77 @@ export default function RestaurantDetailScreen() {
       ) : null}
 
       {/* Ảnh */}
-      <FlatList
-        testID="food-images-list"
-        accessibilityLabel="food-images-list"
-        data={foodImages}
-        horizontal
-        keyExtractor={(_, index) => index.toString()}
-        showsHorizontalScrollIndicator={false}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity
-            testID={`food-image-${index}`}
-            accessibilityLabel={`food-image-${index}`}
-            onPress={() => handleImagePreview(navigate, item, foodImages)}
-          >
-            <Image
-              testID={`food-image-element-${index}`}
-              accessibilityLabel={`food-image-element-${index}`}
-              source={{ uri: item }}
-              style={styles.foodImageCarousel}
-            />
-          </TouchableOpacity>
-        )}
-        style={{ marginBottom: 10 }}
-      />
+      {isValidatingImages ? (
+        <View
+          style={{
+            height: 200,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#f5f5f5',
+            marginBottom: 10,
+            borderRadius: 8,
+          }}
+        >
+          <ActivityIndicator size="large" color="#0C516F" />
+          <Text style={{ marginTop: 10, color: '#666', fontSize: 14 }}>
+            Đang tải hình ảnh...
+          </Text>
+        </View>
+      ) : (
+        validFoodImages.length > 0 && (
+          <View style={{ marginBottom: 10 }}>
+            <TouchableOpacity
+              onPress={() =>
+                handleImagePreview(
+                  navigate,
+                  validFoodImages[0],
+                  validFoodImages,
+                )
+              }
+            >
+              <Image
+                source={{ uri: validFoodImages[0] }}
+                style={{
+                  width: '100%',
+                  height: 200,
+                  borderRadius: 12,
+                }}
+                resizeMode="cover"
+                onError={() => {
+                  setValidFoodImages(prev =>
+                    prev.filter(img => img !== validFoodImages[0]),
+                  );
+                }}
+              />
+            </TouchableOpacity>
+            {validFoodImages.length > 1 && (
+              <TouchableOpacity
+                style={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  paddingHorizontal: 10,
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  paddingVertical: 8,
+                  borderRadius: 20,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+                onPress={() => setImagesModalVisible(true)}
+              >
+                <Text style={{ color: '#fff', fontSize: 13, marginRight: 4 }}>
+                  +{validFoodImages.length - 1}
+                </Text>
+                <Text
+                  style={{ color: '#fff', fontSize: 13, fontWeight: '500' }}
+                >
+                  Xem thêm
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )
+      )}
 
       {/* Info */}
       <View
@@ -408,7 +470,11 @@ export default function RestaurantDetailScreen() {
       <View
         testID="rating-stars-container"
         accessibilityLabel="rating-stars-container"
-        style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginBottom: 20,
+        }}
       >
         <Image
           testID="review-avatar"
@@ -419,8 +485,9 @@ export default function RestaurantDetailScreen() {
         <View testID="rating-stars" accessibilityLabel="rating-stars">
           <RatingStars
             maxStars={5}
+            initialRating={0}
+            readOnly={true}
             onRatingChange={async value => {
-              setRating(value);
               const userRole = await getRole();
               console.log('User role khi đánh giá:', userRole);
               if (userRole === 'user') {
@@ -430,7 +497,7 @@ export default function RestaurantDetailScreen() {
               } else {
                 Alert.alert(
                   'Thông báo',
-                  'Chỉ người dùng mới có thể đánh giá nhà hàng',
+                  'Chỉ người dùng đã đăng nhập mới có thể đánh giá nhà hàng',
                 );
               }
             }}
@@ -642,7 +709,10 @@ export default function RestaurantDetailScreen() {
               editable={!reportLoading}
             />
             <View
-              style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+              }}
             >
               <TouchableOpacity
                 style={{
@@ -697,6 +767,65 @@ export default function RestaurantDetailScreen() {
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+      </Modal>
+
+      {/* Modal hiển thị tất cả ảnh */}
+      <Modal
+        visible={imagesModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setImagesModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.9)',
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: 16,
+              paddingTop: 40,
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#fff' }}>
+              Tất cả hình ảnh ({validFoodImages.length})
+            </Text>
+            <TouchableOpacity onPress={() => setImagesModalVisible(false)}>
+              <Text style={{ fontSize: 18, color: '#fff', fontWeight: 'bold' }}>
+                ✕
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={validFoodImages}
+            keyExtractor={(_, index) => index.toString()}
+            numColumns={2}
+            contentContainerStyle={{ padding: 8 }}
+            renderItem={({ item, index }) => (
+              <TouchableOpacity
+                style={{ flex: 1, margin: 4 }}
+                onPress={() => {
+                  setImagesModalVisible(false);
+                  handleImagePreview(navigate, item, validFoodImages);
+                }}
+              >
+                <Image
+                  source={{ uri: item }}
+                  style={{
+                    width: '100%',
+                    height: 150,
+                    borderRadius: 8,
+                  }}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            )}
+          />
         </View>
       </Modal>
     </ScrollView>
