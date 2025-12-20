@@ -48,6 +48,7 @@ const AddShopScreen = () => {
   const [loading, setLoading] = useState(true);
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedShop, setSelectedShop] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
@@ -507,10 +508,15 @@ const AddShopScreen = () => {
     );
   };
 
-  // Lọc danh sách quán theo tên
-  const filteredShops = shops.filter(shop =>
-    shop.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  // Lọc danh sách quán theo tên và trạng thái
+  const filteredShops = shops.filter(shop => {
+    const matchesSearch = shop.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      selectedStatus === 'ALL' || shop.approvalStatus === selectedStatus;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <View style={styles.container}>
@@ -549,6 +555,49 @@ const AddShopScreen = () => {
         />
       </View>
 
+      {/* Bộ lọc trạng thái */}
+      <View
+        style={{
+          flexDirection: 'row',
+          marginHorizontal: 16,
+          marginBottom: 12,
+          gap: 8,
+        }}
+      >
+        {[
+          { key: 'ALL', label: 'Tất cả' },
+          { key: 'APPROVED', label: 'Đã duyệt' },
+          { key: 'PENDING', label: 'Chờ duyệt' },
+          { key: 'REJECTED', label: 'Từ chối' },
+        ].map(status => (
+          <TouchableOpacity
+            key={status.key}
+            onPress={() => setSelectedStatus(status.key)}
+            style={{
+              flex: 1,
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+              backgroundColor:
+                selectedStatus === status.key ? '#0C516F' : '#fff',
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: selectedStatus === status.key ? '#0C516F' : '#ddd',
+              alignItems: 'center',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: selectedStatus === status.key ? '600' : '400',
+                color: selectedStatus === status.key ? '#fff' : '#666',
+              }}
+            >
+              {status.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {loading ? (
         <ActivityIndicator style={{ marginTop: 20 }} />
       ) : (
@@ -560,7 +609,7 @@ const AddShopScreen = () => {
           contentContainerStyle={{ paddingBottom: 20 }}
           ListEmptyComponent={
             <Text style={{ textAlign: 'center', color: '#888', marginTop: 20 }}>
-              {searchQuery
+              {searchQuery || selectedStatus !== 'ALL'
                 ? 'Không tìm thấy quán nào phù hợp.'
                 : 'Bạn chưa đăng ký quán nào.'}
             </Text>
