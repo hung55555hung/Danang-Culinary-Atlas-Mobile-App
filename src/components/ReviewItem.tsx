@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -51,7 +51,9 @@ export default function ReviewItem({
   isAuthenticated = false,
 }: ReviewItemProps) {
   const navigation = useNavigation<any>();
+  const menuButtonRef = useRef<any>(null);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const [isOwner, setIsOwner] = useState(false);
   const [isVendor, setIsVendor] = useState(false);
   const [replyMode, setReplyMode] = useState(false);
@@ -212,13 +214,30 @@ export default function ReviewItem({
         </View>
         {/* Button menu_dot */}
         <TouchableOpacity
+          ref={menuButtonRef}
           style={{ paddingRight: 8 }}
           onPress={() => {
             if (!isAuthenticated) {
               Alert.alert('Thông báo', 'Bạn chưa đăng nhập');
               return;
             }
-            setMenuVisible(!menuVisible);
+            // Measure button position
+            menuButtonRef.current?.measure(
+              (
+                x: number,
+                y: number,
+                width: number,
+                height: number,
+                pageX: number,
+                pageY: number,
+              ) => {
+                setMenuPosition({
+                  top: pageY,
+                  right: 30,
+                });
+                setMenuVisible(true);
+              },
+            );
           }}
         >
           <Image
@@ -237,19 +256,24 @@ export default function ReviewItem({
             style={{
               flex: 1,
               backgroundColor: 'rgba(0,0,0,0.2)',
-              justifyContent: 'center',
-              alignItems: 'center',
             }}
             activeOpacity={1}
             onPressOut={() => setMenuVisible(false)}
           >
             <View
               style={{
+                position: 'absolute',
+                top: menuPosition.top,
+                right: menuPosition.right,
                 backgroundColor: '#fff',
                 borderRadius: 10,
                 padding: 20,
                 minWidth: 200,
                 elevation: 5,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.25,
+                shadowRadius: 3.84,
               }}
             >
               {isOwner ? (
