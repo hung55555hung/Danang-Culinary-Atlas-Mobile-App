@@ -160,7 +160,23 @@ export default function RestaurantDetailScreen() {
     if (fromNotification && reviewId && reviews.length > 0) {
       const index = reviews.findIndex(r => r.reviewId === reviewId);
       if (index !== -1) {
-        flatListRef.current?.scrollToIndex({ index, animated: true });
+        // Sử dụng setTimeout để đảm bảo FlatList đã render xong
+        setTimeout(() => {
+          try {
+            flatListRef.current?.scrollToIndex({ 
+              index, 
+              animated: true,
+              viewPosition: 0.5 
+            });
+          } catch (error) {
+            console.log('Không thể scroll đến review:', error);
+            // Fallback: scroll bằng scrollToOffset nếu scrollToIndex fails
+            flatListRef.current?.scrollToOffset({
+              offset: index * 200, // ước tính chiều cao mỗi item
+              animated: true
+            });
+          }
+        }, 300);
       }
     }
   }, [fromNotification, reviewId, reviews]);

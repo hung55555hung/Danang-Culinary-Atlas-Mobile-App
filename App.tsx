@@ -1,8 +1,7 @@
 import * as React from 'react';
 import AppNavigator from './src/navigation/AppNavigator';
 import { Provider as PaperProvider } from 'react-native-paper';
-import 'react-native-gesture-handler';
-import { Linking } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Mapbox from '@rnmapbox/maps';
 
 // 🗺️ Set Mapbox Access Token - HARDCODED
@@ -12,8 +11,10 @@ Mapbox.setAccessToken(MAPBOX_TOKEN);
 
 export default function App() {
   return (
-    <PaperProvider>
-      <AppNavigator />
-    </PaperProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <PaperProvider>
+        <AppNavigator />
+      </PaperProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -120,8 +120,16 @@ export const updateReview = async (
   return API.patch(`/reviews/${reviewId}`, data);
 };
 
-export const getNotifications = async () => {
-  return API.get('/notifications');
+export const getNotifications = async (page: number = 0, size: number = 10) => {
+  return API.get(`/notifications?page=${page}&size=${size}`);
+};
+
+export const markNotificationAsRead = async (notificationId: number) => {
+  return API.patch(`/notifications/${notificationId}/read`);
+};
+
+export const deleteNotification = async (notificationId: number) => {
+  return API.delete(`/admin/notifications/${notificationId}`);
 };
 
 export const getRestaurantById = (restaurantId: string) => {

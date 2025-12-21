@@ -44,3 +44,7 @@ fix:
 6. cheat lỏ giờ hiển thị(done)
 7. không tạo báo các duoc(tạo report review ok nhưng report res lỗi do BE)
 8.lấy tag nhà hàng(done)
+
+
+note:
++ giấy phép đã duyệt thì k cạp nhật được
