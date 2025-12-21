@@ -324,56 +324,30 @@ const AddShopScreen = () => {
               </View>
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 {item.businessLicense.approvalStatus === 'APPROVED' ? (
-                  <>
-                    <TouchableOpacity
-                      onPress={() =>
-                        handleViewLicense(
-                          item.restaurantId,
-                          item.businessLicense!,
-                        )
-                      }
+                  <TouchableOpacity
+                    onPress={() =>
+                      handleViewLicense(
+                        item.restaurantId,
+                        item.businessLicense!,
+                      )
+                    }
+                    style={{
+                      paddingHorizontal: 10,
+                      paddingVertical: 6,
+                      backgroundColor: '#0C516F',
+                      borderRadius: 6,
+                    }}
+                  >
+                    <Text
                       style={{
-                        paddingHorizontal: 10,
-                        paddingVertical: 6,
-                        backgroundColor: '#0C516F',
-                        borderRadius: 6,
+                        color: '#fff',
+                        fontSize: 11,
+                        fontWeight: '600',
                       }}
                     >
-                      <Text
-                        style={{
-                          color: '#fff',
-                          fontSize: 11,
-                          fontWeight: '600',
-                        }}
-                      >
-                        Xem
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() =>
-                        handleDeleteLicense(
-                          item.businessLicense!.licenseId,
-                          'giấy phép kinh doanh',
-                        )
-                      }
-                      style={{
-                        paddingHorizontal: 10,
-                        paddingVertical: 6,
-                        backgroundColor: '#e74c3c',
-                        borderRadius: 6,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: '#fff',
-                          fontSize: 11,
-                          fontWeight: '600',
-                        }}
-                      >
-                        Xóa
-                      </Text>
-                    </TouchableOpacity>
-                  </>
+                      Xem
+                    </Text>
+                  </TouchableOpacity>
                 ) : (
                   <>
                     <TouchableOpacity
@@ -490,56 +464,30 @@ const AddShopScreen = () => {
               </View>
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 {item.foodSafetyLicense.approvalStatus === 'APPROVED' ? (
-                  <>
-                    <TouchableOpacity
-                      onPress={() =>
-                        handleViewLicense(
-                          item.restaurantId,
-                          item.foodSafetyLicense!,
-                        )
-                      }
+                  <TouchableOpacity
+                    onPress={() =>
+                      handleViewLicense(
+                        item.restaurantId,
+                        item.foodSafetyLicense!,
+                      )
+                    }
+                    style={{
+                      paddingHorizontal: 10,
+                      paddingVertical: 6,
+                      backgroundColor: '#2ecc40',
+                      borderRadius: 6,
+                    }}
+                  >
+                    <Text
                       style={{
-                        paddingHorizontal: 10,
-                        paddingVertical: 6,
-                        backgroundColor: '#2ecc40',
-                        borderRadius: 6,
+                        color: '#fff',
+                        fontSize: 11,
+                        fontWeight: '600',
                       }}
                     >
-                      <Text
-                        style={{
-                          color: '#fff',
-                          fontSize: 11,
-                          fontWeight: '600',
-                        }}
-                      >
-                        Xem
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() =>
-                        handleDeleteLicense(
-                          item.foodSafetyLicense!.licenseId,
-                          'giấy phép ATVS thực phẩm',
-                        )
-                      }
-                      style={{
-                        paddingHorizontal: 10,
-                        paddingVertical: 6,
-                        backgroundColor: '#e74c3c',
-                        borderRadius: 6,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: '#fff',
-                          fontSize: 11,
-                          fontWeight: '600',
-                        }}
-                      >
-                        Xóa
-                      </Text>
-                    </TouchableOpacity>
-                  </>
+                      Xem
+                    </Text>
+                  </TouchableOpacity>
                 ) : (
                   <>
                     <TouchableOpacity
