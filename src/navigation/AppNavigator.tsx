@@ -23,6 +23,8 @@ import AddDishScreen from '../screens/AddDishScreen';
 import EditDishScreen from '../screens/EditDishScreen';
 import EditShopScreen from '../screens/EditShopScreen';
 import NavigationScreen from '../screens/NavigationScreen';
+import LicenseDetailScreen from '../screens/LicenseDetailScreen';
+import AddEditLicenseScreen from '../screens/AddEditLicenseScreen';
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: ['atlasculinary://'],
   config: {
@@ -53,6 +55,13 @@ export type RootStackParamList = {
   EditDish: undefined;
   EditShop: { restaurantId: string };
   Navigation: { destinationName: string; destinationCoords: [number, number] };
+  LicenseDetail: { restaurantId: string; license: any };
+  AddEditLicense: {
+    restaurantId: string;
+    license?: any;
+    mode: 'add' | 'edit';
+    licenseType?: string;
+  };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -85,6 +94,8 @@ export default function AppNavigator() {
         <Stack.Screen name="EditDish" component={EditDishScreen} />
         <Stack.Screen name="EditShop" component={EditShopScreen} />
         <Stack.Screen name="Navigation" component={NavigationScreen} />
+        <Stack.Screen name="LicenseDetail" component={LicenseDetailScreen} />
+        <Stack.Screen name="AddEditLicense" component={AddEditLicenseScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

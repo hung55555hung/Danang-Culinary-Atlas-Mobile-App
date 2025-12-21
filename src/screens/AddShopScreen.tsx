@@ -10,7 +10,7 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import styles from '../styles/AddShopStyles';
 import Header from '../components/Header';
 import {
@@ -20,7 +20,6 @@ import {
   deleteLicense,
 } from '../api/apiConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import UploadLicenseModal from '../components/UploadLicenseModal';
 
 interface LicenseInfo {
   licenseId: string;
@@ -52,21 +51,17 @@ const AddShopScreen = () => {
   const [selectedShop, setSelectedShop] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
-  const [licenseModalVisible, setLicenseModalVisible] = useState(false);
-  const [selectedRestaurantForLicense, setSelectedRestaurantForLicense] =
-    useState<string | null>(null);
-  const [existingLicense, setExistingLicense] = useState<any>(null);
-  const [selectedLicenseType, setSelectedLicenseType] = useState<string>(
-    'BUSINESS_REGISTRATION',
-  );
-  const [viewLicenseModalVisible, setViewLicenseModalVisible] = useState(false);
-  const [viewingLicense, setViewingLicense] = useState<LicenseInfo | null>(
-    null,
-  );
 
   useEffect(() => {
     fetchVendorIdAndShops();
   }, []);
+
+  // Refresh khi quay lại màn hình
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchVendorIdAndShops();
+    }, []),
+  );
 
   const fetchVendorIdAndShops = async () => {
     const id = await AsyncStorage.getItem('accountID');
@@ -147,15 +142,27 @@ const AddShopScreen = () => {
     );
   };
 
-  const handleOpenLicenseModal = (
-    restaurantId: string,
-    license: any,
-    licenseType: string,
-  ) => {
-    setSelectedRestaurantForLicense(restaurantId);
-    setExistingLicense(license);
-    setSelectedLicenseType(licenseType);
-    setLicenseModalVisible(true);
+  const handleAddLicense = (restaurantId: string, licenseType: string) => {
+    navigation.navigate('AddEditLicense', {
+      restaurantId,
+      licenseType,
+      mode: 'add',
+    });
+  };
+
+  const handleEditLicense = (restaurantId: string, license: LicenseInfo) => {
+    navigation.navigate('AddEditLicense', {
+      restaurantId,
+      license,
+      mode: 'edit',
+    });
+  };
+
+  const handleViewLicense = (restaurantId: string, license: LicenseInfo) => {
+    navigation.navigate('LicenseDetail', {
+      restaurantId,
+      license,
+    });
   };
 
   const handleDeleteLicense = async (
@@ -184,28 +191,6 @@ const AddShopScreen = () => {
       ],
       { cancelable: true },
     );
-  };
-
-  const handleCloseLicenseModal = () => {
-    setLicenseModalVisible(false);
-    setSelectedRestaurantForLicense(null);
-    setExistingLicense(null);
-    // Refresh danh sách quán để cập nhật trạng thái license
-    fetchVendorIdAndShops();
-  };
-
-  const handleViewLicense = (license: LicenseInfo) => {
-    setViewingLicense(license);
-    setViewLicenseModalVisible(true);
-  };
-
-  const handleCloseViewLicenseModal = () => {
-    setViewLicenseModalVisible(false);
-    setViewingLicense(null);
-  };
-
-  const handleViewImage = (imageUrl: string) => {
-    navigation.navigate('ImagePreview', { imageUri: imageUrl });
   };
 
   const renderShop = ({ item }: { item: ShopWithLicense }) => {
@@ -341,7 +326,12 @@ const AddShopScreen = () => {
                 {item.businessLicense.approvalStatus === 'APPROVED' ? (
                   <>
                     <TouchableOpacity
-                      onPress={() => handleViewLicense(item.businessLicense!)}
+                      onPress={() =>
+                        handleViewLicense(
+                          item.restaurantId,
+                          item.businessLicense!,
+                        )
+                      }
                       style={{
                         paddingHorizontal: 10,
                         paddingVertical: 6,
@@ -388,10 +378,9 @@ const AddShopScreen = () => {
                   <>
                     <TouchableOpacity
                       onPress={() =>
-                        handleOpenLicenseModal(
+                        handleEditLicense(
                           item.restaurantId,
-                          item.businessLicense,
-                          'BUSINESS_REGISTRATION',
+                          item.businessLicense!,
                         )
                       }
                       style={{
@@ -442,11 +431,7 @@ const AddShopScreen = () => {
           ) : (
             <TouchableOpacity
               onPress={() =>
-                handleOpenLicenseModal(
-                  item.restaurantId,
-                  null,
-                  'BUSINESS_REGISTRATION',
-                )
+                handleAddLicense(item.restaurantId, 'BUSINESS_REGISTRATION')
               }
               style={{
                 flexDirection: 'row',
@@ -507,7 +492,12 @@ const AddShopScreen = () => {
                 {item.foodSafetyLicense.approvalStatus === 'APPROVED' ? (
                   <>
                     <TouchableOpacity
-                      onPress={() => handleViewLicense(item.foodSafetyLicense!)}
+                      onPress={() =>
+                        handleViewLicense(
+                          item.restaurantId,
+                          item.foodSafetyLicense!,
+                        )
+                      }
                       style={{
                         paddingHorizontal: 10,
                         paddingVertical: 6,
@@ -554,10 +544,9 @@ const AddShopScreen = () => {
                   <>
                     <TouchableOpacity
                       onPress={() =>
-                        handleOpenLicenseModal(
+                        handleEditLicense(
                           item.restaurantId,
-                          item.foodSafetyLicense,
-                          'FOOD_SAFETY_CERT',
+                          item.foodSafetyLicense!,
                         )
                       }
                       style={{
@@ -608,11 +597,7 @@ const AddShopScreen = () => {
           ) : (
             <TouchableOpacity
               onPress={() =>
-                handleOpenLicenseModal(
-                  item.restaurantId,
-                  null,
-                  'FOOD_SAFETY_CERT',
-                )
+                handleAddLicense(item.restaurantId, 'FOOD_SAFETY_CERT')
               }
               style={{
                 flexDirection: 'row',
@@ -825,191 +810,6 @@ const AddShopScreen = () => {
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
-      </Modal>
-
-      {/* Modal Upload License */}
-      {selectedRestaurantForLicense && (
-        <UploadLicenseModal
-          visible={licenseModalVisible}
-          onClose={handleCloseLicenseModal}
-          restaurantId={selectedRestaurantForLicense}
-          existingLicense={existingLicense}
-          initialLicenseType={selectedLicenseType}
-        />
-      )}
-
-      {/* Modal Xem giấy phép */}
-      <Modal
-        visible={viewLicenseModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={handleCloseViewLicenseModal}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: '#fff',
-              borderRadius: 16,
-              padding: 20,
-              width: '90%',
-              maxHeight: '80%',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: 'bold',
-                marginBottom: 16,
-                color: '#0C516F',
-              }}
-            >
-              Thông tin giấy phép
-            </Text>
-
-            {viewingLicense && (
-              <View style={{ gap: 12 }}>
-                <View>
-                  <Text
-                    style={{ fontSize: 12, color: '#666', marginBottom: 4 }}
-                  >
-                    Loại giấy phép:
-                  </Text>
-                  <Text
-                    style={{ fontSize: 15, color: '#333', fontWeight: '500' }}
-                  >
-                    {viewingLicense.licenseType === 'BUSINESS_REGISTRATION'
-                      ? 'Giấy phép kinh doanh'
-                      : 'Giấy phép ATVS thực phẩm'}
-                  </Text>
-                </View>
-
-                <View>
-                  <Text
-                    style={{ fontSize: 12, color: '#666', marginBottom: 4 }}
-                  >
-                    Số giấy phép:
-                  </Text>
-                  <Text
-                    style={{ fontSize: 15, color: '#333', fontWeight: '500' }}
-                  >
-                    {viewingLicense.licenseNumber}
-                  </Text>
-                </View>
-
-                <View>
-                  <Text
-                    style={{ fontSize: 12, color: '#666', marginBottom: 4 }}
-                  >
-                    Ngày cấp:
-                  </Text>
-                  <Text
-                    style={{ fontSize: 15, color: '#333', fontWeight: '500' }}
-                  >
-                    {new Date(viewingLicense.issueDate).toLocaleDateString(
-                      'vi-VN',
-                    )}
-                  </Text>
-                </View>
-
-                <View>
-                  <Text
-                    style={{ fontSize: 12, color: '#666', marginBottom: 4 }}
-                  >
-                    Ngày hết hạn:
-                  </Text>
-                  <Text
-                    style={{ fontSize: 15, color: '#333', fontWeight: '500' }}
-                  >
-                    {new Date(viewingLicense.expireDate).toLocaleDateString(
-                      'vi-VN',
-                    )}
-                  </Text>
-                </View>
-
-                <View>
-                  <Text
-                    style={{ fontSize: 12, color: '#666', marginBottom: 4 }}
-                  >
-                    Trạng thái:
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      color:
-                        viewingLicense.approvalStatus === 'APPROVED'
-                          ? '#2ecc40'
-                          : viewingLicense.approvalStatus === 'PENDING'
-                          ? '#f1c40f'
-                          : '#e74c3c',
-                      fontWeight: '600',
-                    }}
-                  >
-                    {viewingLicense.approvalStatus === 'APPROVED'
-                      ? 'Đã duyệt'
-                      : viewingLicense.approvalStatus === 'PENDING'
-                      ? 'Chờ duyệt'
-                      : 'Từ chối'}
-                  </Text>
-                </View>
-
-                <View>
-                  <Text
-                    style={{ fontSize: 12, color: '#666', marginBottom: 8 }}
-                  >
-                    Ảnh giấy phép:
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => handleViewImage(viewingLicense.documentUrl)}
-                    activeOpacity={0.7}
-                  >
-                    <Image
-                      source={{ uri: viewingLicense.documentUrl }}
-                      style={{
-                        width: '100%',
-                        height: 200,
-                        borderRadius: 8,
-                        backgroundColor: '#f0f0f0',
-                      }}
-                      resizeMode="cover"
-                    />
-                    <Text
-                      style={{
-                        textAlign: 'center',
-                        color: '#0C516F',
-                        marginTop: 8,
-                        fontSize: 13,
-                      }}
-                    >
-                      Nhấn vào ảnh để xem phóng to
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-
-            <TouchableOpacity
-              onPress={handleCloseViewLicenseModal}
-              style={{
-                marginTop: 20,
-                backgroundColor: '#0C516F',
-                padding: 14,
-                borderRadius: 8,
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
-                Đóng
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </Modal>
 
       {/* Button Thêm quán mới */}
