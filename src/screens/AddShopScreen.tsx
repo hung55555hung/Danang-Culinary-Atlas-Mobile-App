@@ -533,7 +533,6 @@ const AddShopScreen = () => {
       {/* Thanh tìm kiếm */}
       <View
         style={{
-          marginHorizontal: 16,
           marginBottom: 12,
           backgroundColor: '#f5f5f5',
           borderRadius: 10,
@@ -559,7 +558,6 @@ const AddShopScreen = () => {
       <View
         style={{
           flexDirection: 'row',
-          marginHorizontal: 16,
           marginBottom: 12,
           gap: 8,
         }}

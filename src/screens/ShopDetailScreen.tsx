@@ -50,6 +50,9 @@ export default function RestaurantDetailScreen() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuLoading, setMenuLoading] = useState(false);
   const [menuDishes, setMenuDishes] = useState<any[]>([]);
+  const [menuPage, setMenuPage] = useState(0);
+  const [menuHasMore, setMenuHasMore] = useState(true);
+  const [menuLoadingMore, setMenuLoadingMore] = useState(false);
   const [reportVisible, setReportVisible] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportLoading, setReportLoading] = useState(false);
@@ -184,14 +187,40 @@ export default function RestaurantDetailScreen() {
   // Hàm lấy danh sách món ăn khi mở modal
   const fetchMenuDishes = async () => {
     setMenuLoading(true);
+    setMenuPage(0);
+    setMenuHasMore(true);
     try {
-      const data = await getDishesOfRestaurant(currentRestaurantId);
-      setMenuDishes(data);
+      const data = await getDishesOfRestaurant(currentRestaurantId, 0, 10);
+      setMenuDishes(data.content || []);
+      setMenuHasMore(!data.last);
       console.log('Món ăn của nhà hàng:', data);
     } catch (err) {
       setMenuDishes([]);
+      setMenuHasMore(false);
     } finally {
       setMenuLoading(false);
+    }
+  };
+
+  // Hàm load thêm món ăn
+  const handleLoadMoreDishes = async () => {
+    if (menuLoadingMore || !menuHasMore) return;
+
+    setMenuLoadingMore(true);
+    try {
+      const nextPage = menuPage + 1;
+      const data = await getDishesOfRestaurant(
+        currentRestaurantId,
+        nextPage,
+        10,
+      );
+      setMenuDishes(prev => [...prev, ...(data.content || [])]);
+      setMenuPage(nextPage);
+      setMenuHasMore(!data.last);
+    } catch (err) {
+      console.error('Lỗi khi load thêm món ăn:', err);
+    } finally {
+      setMenuLoadingMore(false);
     }
   };
 
@@ -599,6 +628,8 @@ export default function RestaurantDetailScreen() {
               <FlatList
                 data={menuDishes}
                 keyExtractor={item => item.dishId}
+                onEndReached={handleLoadMoreDishes}
+                onEndReachedThreshold={0.5}
                 renderItem={({ item }) => (
                   <View
                     style={{
@@ -652,6 +683,13 @@ export default function RestaurantDetailScreen() {
                   >
                     Chưa có món ăn nào.
                   </Text>
+                }
+                ListFooterComponent={
+                  menuLoadingMore ? (
+                    <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                      <ActivityIndicator size="small" color="#1E90FF" />
+                    </View>
+                  ) : null
                 }
                 style={{ marginBottom: 8 }}
               />

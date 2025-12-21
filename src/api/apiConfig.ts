@@ -192,9 +192,15 @@ export const createDish = async (data: {
   const res = await API.post('/dishes', data);
   return res.data;
 };
-export const getDishesOfRestaurant = async (restaurantId: string) => {
-  const res = await API.get(`/restaurants/${restaurantId}/dishes`);
-  return res.data.content;
+export const getDishesOfRestaurant = async (
+  restaurantId: string,
+  page: number = 0,
+  size: number = 10,
+) => {
+  const res = await API.get(
+    `/restaurants/${restaurantId}/dishes?page=${page}&size=${size}`,
+  );
+  return res.data;
 };
 
 export const getRestaurantDetail = (restaurantId: string) => {
