@@ -11,6 +11,7 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadToCloudinary } from '../utils/uploadToCloudinary';
@@ -38,6 +39,7 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
   initialLicenseType = 'BUSINESS_REGISTRATION',
   existingLicense,
 }) => {
+  const navigation = useNavigation<any>();
   const [licenseType, setLicenseType] = useState('BUSINESS_REGISTRATION');
   const [licenseNumber, setLicenseNumber] = useState('');
   const [issueDate, setIssueDate] = useState<Date>(new Date());
@@ -368,16 +370,33 @@ const UploadLicenseModal: React.FC<UploadLicenseModalProps> = ({
             </TouchableOpacity>
 
             {imageUri && (
-              <Image
-                source={{ uri: imageUri }}
-                style={{
-                  width: '100%',
-                  height: 200,
-                  borderRadius: 8,
-                  marginBottom: 12,
-                }}
-                resizeMode="cover"
-              />
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('ImagePreview', { imageUri: imageUri })
+                }
+                activeOpacity={0.7}
+              >
+                <Image
+                  source={{ uri: imageUri }}
+                  style={{
+                    width: '100%',
+                    height: 200,
+                    borderRadius: 8,
+                    marginBottom: 12,
+                  }}
+                  resizeMode="cover"
+                />
+                <Text
+                  style={{
+                    textAlign: 'center',
+                    color: '#0C516F',
+                    marginBottom: 12,
+                    fontSize: 13,
+                  }}
+                >
+                  Nhấn vào ảnh để xem phóng to
+                </Text>
+              </TouchableOpacity>
             )}
 
             {/* Buttons */}
