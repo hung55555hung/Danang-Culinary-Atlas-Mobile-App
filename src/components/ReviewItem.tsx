@@ -493,9 +493,9 @@ export default function ReviewItem({
           >
             <View
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: 14,
+                width: 30,
+                height: 30,
+                borderRadius: 15,
                 backgroundColor: '#0C516F',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -517,14 +517,12 @@ export default function ReviewItem({
               >
                 Phản hồi từ chủ quán
               </Text>
-              {item.repliedAt && (
-                <Text style={{ fontSize: 11, color: '#6c757d', marginTop: 2 }}>
-                  {formatTimeAgo(item.repliedAt)}
-                </Text>
-              )}
+              <Text style={{ fontSize: 14, color: '#6c757d', marginTop: 2 }}>
+                {item.vendorReply}
+              </Text>
             </View>
           </View>
-          <Text
+          {/* <Text
             style={{
               fontSize: 14,
               color: '#2c3e50',
@@ -533,7 +531,7 @@ export default function ReviewItem({
             }}
           >
             {item.vendorReply}
-          </Text>
+          </Text> */}
         </View>
       )}
 

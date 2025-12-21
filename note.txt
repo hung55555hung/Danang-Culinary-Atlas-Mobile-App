@@ -48,3 +48,4 @@ fix:
 
 note:
 + giấy phép đã duyệt thì k cạp nhật được
++k report được nhà hàng
